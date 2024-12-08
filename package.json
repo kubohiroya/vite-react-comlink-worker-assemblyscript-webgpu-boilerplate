@@ -1,5 +1,5 @@
 {
-  "name": "vite-react-worker-assemblyscript-boilerplate",
+  "name": "vite-react-promise-worker-assemblyscript-boilerplate",
   "version": "1.0.0",
   "description": "Vite React WebWorker AssemblyScript Boilerplate",
   "scripts": {
