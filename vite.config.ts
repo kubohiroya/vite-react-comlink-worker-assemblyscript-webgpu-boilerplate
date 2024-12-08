@@ -3,7 +3,7 @@ import assemblyScriptPlugin from 'vite-plugin-assemblyscript-asc';
 import react from '@vitejs/plugin-react';
 import ViteRestart from 'vite-plugin-restart'
 
-const projectName = 'vite-react-worker-assemblyscript-boilerplate';
+const projectName = 'vite-react-promise-worker-assemblyscript-boilerplate';
 export default defineConfig({
   server: {
     port: 4200,

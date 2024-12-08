@@ -7,7 +7,7 @@ import { ASImageObjectWorkerService } from "./ASImageObject/ASImageObjectWorkerS
 import { ImageViewer } from "./ImageViewer";
 
 const src =
-  "vite-react-worker-assemblyscript-boilerplate/The_Great_Wave_off_Kanagawa.jpg";
+  "vite-react-promise-worker-assemblyscript-boilerplate/The_Great_Wave_off_Kanagawa.jpg";
 
 export const BenchmarkApp = () => {
   return (
