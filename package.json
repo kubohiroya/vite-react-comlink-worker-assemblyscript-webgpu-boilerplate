@@ -1,0 +1,33 @@
+{
+  "name": "vite-react-worker-assemblyscript-boilerplate",
+  "version": "1.0.0",
+  "description": "Vite React WebWorker AssemblyScript Boilerplate",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "deploy": "gh-pages -d dist"
+  },
+  "private": true,
+  "dependencies": {
+    "@emotion/react": "^11.13.5",
+    "@emotion/styled": "^11.13.5",
+    "@mui/lab": "6.0.0-beta.18",
+    "@mui/material": "^6.1.9",
+    "@mui/x-charts": "^7.23.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "assemblyscript": "^0.27.31",
+    "gh-pages": "^6.2.0",
+    "prettier": "^3.4.2",
+    "tslib": "^2.8.1",
+    "typescript": "^5.7.2",
+    "vite": "5.4.6",
+    "vite-plugin-assemblyscript-asc": "^1.0.5",
+    "vite-plugin-restart": "^0.4.2"
+  }
+}

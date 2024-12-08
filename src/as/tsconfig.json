@@ -1,0 +1,11 @@
+{
+  "extends": "../../node_modules/assemblyscript/std/assembly.json",
+  "compilerOptions": {
+    "lib": ["esnext"],
+    "module": "esnext",
+    "imports": {
+      "env": "env"
+    }
+  },
+  "include": ["./**/*.ts"]
+}
