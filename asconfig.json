@@ -1,0 +1,21 @@
+{
+  "entries": ["./src/as/assembly/index.ts"],
+  "options": {
+    "bindings": "raw",
+    "enable": ["reference-types","threads"],
+    "runtime": "minimal",
+    "exportRuntime": true
+  },
+  "targets": {
+    "release": {
+      "optimize": true,
+      "outFile": "./build/as/ASModule.release/index.wasm",
+      "textFile": "./build/as/ASModule.release/index.wat"
+    },
+    "debug": {
+      "debug": true,
+      "outFile": "./build/as/ASModule.debug/index.wasm",
+      "textFile": "./build/as/ASModule.debug/index.wat"
+    }
+  }
+}
