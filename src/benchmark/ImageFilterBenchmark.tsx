@@ -4,7 +4,7 @@ import { Box, Button, Stack, styled } from "@mui/material";
 import { ImageViewer } from "./ImageViewer";
 
 import { Gauge, gaugeClasses } from "@mui/x-charts/Gauge";
-import { ImageObjectWorkerService } from "./ImageObject/ImageObjectWorkerService";
+import { ImageObjectWorkerService } from "./ImageObjectWorkerService";
 import { ImageObject } from "./ImageObject";
 
 const Caption = styled(Box)(({ theme }) => ({
@@ -38,17 +38,17 @@ export const ImageFilterBenchmark = ({
         preloadImageObject.height,
         preloadImageObject.buffer,
       )
-      .then((imageObjectId) => {
+      .then((imageObjectId: number) => {
         workerService.applyAverageFilter(
           imageObjectId as number,
           iteration,
-          ({ value, valueMax }) => {
+          ({value, valueMax}:{ value: number, valueMax: number }) => {
             setProgress(value);
             setElapsedTime(performance.now() - startedTime);
             if (value === valueMax) {
               workerService
                 .transfer(imageObjectId as number)
-                .then((targetImageObject) => {
+                .then((targetImageObject: ImageObject) => {
                   setTargetImageObject(targetImageObject);
                   setFinished(true);
                 });

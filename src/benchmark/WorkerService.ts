@@ -17,7 +17,6 @@ export type BaseWorkerMessageTypes =
     | WorkerMessageTypeItem.create
     | WorkerMessageTypeItem.delete
     | WorkerMessageTypeItem.transfer;
-    //| WorkerMessageTypeValuesCustom.apply_average_filter;
 
 export type GenericRequestMessagePayload = {
   id: number;
