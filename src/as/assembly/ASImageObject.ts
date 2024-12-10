@@ -41,16 +41,16 @@ export function setImageObjectContent(
   image.imageArray.set(initialImageContent);
 }
 
-export function getImageObjectPtr(id: u32): usize {
+export function getImageObjectPtrLen(id: u32): usize[] {
   const imageObject = ASImageObjects.getSingleton().get(id);
   if (!imageObject) throw new Error("Invalid ImageObject ID");
-  return imageObject.imageArray.dataStart;
+  return [imageObject.imageArray.dataStart, imageObject.imageArray.length];
 }
 
-export function getImageObjectLen(id: u32): u32 {
+export function getImageObjectWidthHeight(id: u32): u32[] {
   const imageObject = ASImageObjects.getSingleton().get(id);
   if (!imageObject) throw new Error("Invalid ImageObject ID");
-  return imageObject.imageArray.length;
+  return [imageObject.width, imageObject.height];
 }
 
 export function deleteImageObject(id: u32): void {

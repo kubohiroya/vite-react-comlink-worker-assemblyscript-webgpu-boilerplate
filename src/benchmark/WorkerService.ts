@@ -1,19 +1,3 @@
-// WebWorkerへのリクエストの型定義
-export interface WorkerRequest<T, P> {
-  requestId: number;
-  type: T;
-  requestPayload: P;
-}
-
-// WebWorkerからのレスポンスの型定義
-export interface WorkerResponse<T, R> {
-  requestId: number;
-  type: T;
-  responsePayload: R;
-  progress?: ProgressMonitorStates;
-  error?: any;
-}
-
 export type ProgressMonitorStates = {
   value: number;
   valueMin: number;
@@ -23,18 +7,63 @@ export type ProgressMonitorStates = {
 
 export type ProgressMonitor = (params: ProgressMonitorStates) => void;
 
-// リクエスト管理用の型定義
-class WorkerRequestPromise<P, R2> {
-  requestPayload: P;
-  resolve: (value: R2 | PromiseLike<R2>) => void;
+export enum WorkerMessageTypeItem {
+  create,
+  delete,
+  transfer,
+}
+
+export type BaseWorkerMessageTypes =
+    | WorkerMessageTypeItem.create
+    | WorkerMessageTypeItem.delete
+    | WorkerMessageTypeItem.transfer;
+    //| WorkerMessageTypeValuesCustom.apply_average_filter;
+
+export type GenericRequestMessagePayload = {
+  id: number;
+};
+
+export type GenericResponseMessagePayload = {
+  id: number;
+}
+
+export type CreateRequest<MY_CREATE_PAYLOAD> = {
+  requestId: number;
+  type: WorkerMessageTypeItem.create;
+  requestPayload: MY_CREATE_PAYLOAD;
+}
+
+export interface GenericRequest<MY_WORKER_TYPES, REQP extends GenericRequestMessagePayload> {
+  requestId: number;
+  type: MY_WORKER_TYPES;
+  requestPayload: REQP;
+}
+
+export interface TransferRequest<REQP> {
+  requestId: number;
+  type: WorkerMessageTypeItem.transfer;
+  requestPayload: REQP;
+}
+
+export interface GenericResponse<MY_MESSAGE_TYPES, MY_RES_PAYLOAD> {
+  requestId: number;
+  type: MY_MESSAGE_TYPES;
+  responsePayload: MY_RES_PAYLOAD;
+  progress?: ProgressMonitorStates;
+  error?: any;
+}
+
+class AbstractWorkerPromise<REQP, RESOLVE> {
+  requestPayload: REQP;
+  resolve: RESOLVE;
   reject: (reason?: any) => void;
   progressMonitor: ProgressMonitor | undefined;
 
   constructor(
-    requestPayload: P,
-    resolve: (value: R2 | PromiseLike<R2>) => void,
-    reject: (reason?: any) => void,
-    progressMonitor: ProgressMonitor | undefined,
+      requestPayload: REQP,
+      resolve: RESOLVE,
+      reject: (reason?: any) => void,
+      progressMonitor: ProgressMonitor | undefined,
   ) {
     this.requestPayload = requestPayload;
     this.resolve = resolve;
@@ -43,51 +72,178 @@ class WorkerRequestPromise<P, R2> {
   }
 }
 
-export abstract class WorkerService<T, P, R, R2> {
+class CreateWorkerPromise<MY_CREATE_PAYLOAD> extends AbstractWorkerPromise<MY_CREATE_PAYLOAD, (value: number | PromiseLike<number>) => void> {
+  constructor(
+      requestPayload: MY_CREATE_PAYLOAD,
+      resolve: (value: number | PromiseLike<number>) => void,
+      reject: (reason?: any) => void,
+      progressMonitor: ProgressMonitor | undefined,
+  ) {
+    super(requestPayload, resolve, reject, progressMonitor);
+  }
+}
+
+class GenericWorkerPromise<REQP extends GenericRequestMessagePayload, RESP> extends AbstractWorkerPromise<REQP, (value: RESP | PromiseLike<RESP>) => void> {
+
+  constructor(
+      requestPayload: REQP,
+      resolve: (value: RESP | PromiseLike<RESP>) => void,
+      reject: (reason?: any) => void,
+      progressMonitor: ProgressMonitor | undefined,
+  ) {
+    super(requestPayload, resolve, reject, progressMonitor);
+  }
+}
+
+class TransferWorkerPromise<REQP extends GenericRequestMessagePayload, RES> extends AbstractWorkerPromise<REQP, (value: RES | PromiseLike<RES>) => void>{
+
+  constructor(
+    requestPayload: REQP,
+    resolve: (value: RES | PromiseLike<RES>) => void,
+    reject: (reason?: any) => void,
+    progressMonitor: ProgressMonitor | undefined,
+  ) {
+    super(requestPayload, resolve, reject, progressMonitor);
+  }
+}
+
+export abstract class WorkerService<
+    MY_WORKER_TYPES,
+    MY_CREATE_PAYLOAD,
+    REQP extends GenericRequestMessagePayload,
+    RESP extends GenericResponseMessagePayload,
+    RES> {
   requestIdCounter = 0;
-  requests = new Map<number, WorkerRequestPromise<P, R2>>();
+
+  creates = new Map<number, CreateWorkerPromise<MY_CREATE_PAYLOAD>>();
+  requests = new Map<number, GenericWorkerPromise<REQP, RESP>>();
+  transfers = new Map<number, TransferWorkerPromise<REQP, RES>>();
+
   worker: Worker;
 
   constructor() {
     this.worker = this.createWorker();
-    this.worker.onmessage = (event: MessageEvent<WorkerResponse<T, R>>) => {
+    this.worker.onmessage = (event: MessageEvent<GenericResponse<MY_WORKER_TYPES, RESP>>) => {
       const { requestId, error, progress } = event.data;
-      if (this.requests.has(requestId)) {
-        const { progressMonitor, resolve, reject } = this.requests.get(requestId)!;
-        if(progressMonitor && progress){
+      if (this.creates.has(requestId)) {
+        const { resolve } = this.creates.get(requestId)!;
+        this.creates.delete(requestId);
+        resolve(
+            (event.data.responsePayload).id,
+        );
+      } else if (this.requests.has(requestId)) {
+        const { progressMonitor, resolve, reject } =
+          this.requests.get(requestId)!;
+        if (progressMonitor && progress) {
           progressMonitor(progress);
-        }else if (error) {
+        } else if (error) {
           reject(new Error(error));
           this.requests.delete(requestId);
         } else {
-          resolve(this.applyMiddleware(event.data));
-          this.requests.delete(requestId);
+          resolve(event.data.responsePayload);
         }
+      } else if (this.transfers.has(requestId)) {
+        const { resolve } = this.transfers.get(requestId)!;
+        const result = this.instantiateResult(event.data.responsePayload);
+        this.transfers.delete(requestId);
+        resolve(result);
       }
     };
   }
 
-  sendRequest(type: T, requestPayload: P, progressMonitor?: ProgressMonitor): Promise<R2> {
+  sendCreateRequest(requestPayload: MY_CREATE_PAYLOAD,
+                    progressMonitor?: ProgressMonitor,): Promise<number>{
     const requestId = this.requestIdCounter++; // 一意のIDを生成
 
-    return new Promise<R2>(
+    return new Promise<number>(
+        (
+            resolve: (value: number | PromiseLike<number>) => void,
+            reject: (reason?: any) => void,
+        ) => {
+          // 解決/拒否用のコールバックを保存
+          this.creates.set(
+              requestId,
+              new CreateWorkerPromise<MY_CREATE_PAYLOAD>(
+                  requestPayload,
+                  resolve,
+                  reject,
+                  progressMonitor,
+              ),
+          );
+          const message: CreateRequest<MY_CREATE_PAYLOAD> = {
+            requestId,
+            type: WorkerMessageTypeItem.create,
+            requestPayload,
+          };
+          this.worker.postMessage(message);
+        },
+    );
+  }
+
+  sendGenericRequest(
+      type: MY_WORKER_TYPES,
+      requestPayload: REQP,
+      progressMonitor?: ProgressMonitor,
+  ): Promise<GenericResponseMessagePayload> {
+    const requestId = this.requestIdCounter++; // 一意のIDを生成
+
+    return new Promise<GenericResponseMessagePayload>(
+        (
+            resolve: (value: GenericResponseMessagePayload | PromiseLike<GenericResponseMessagePayload>) => void,
+            reject: (reason?: any) => void,
+        ) => {
+          // 解決/拒否用のコールバックを保存
+          this.requests.set(
+              requestId,
+              new GenericWorkerPromise<REQP, RESP>(
+                  requestPayload,
+                  resolve,
+                  reject,
+                  progressMonitor,
+              ),
+          );
+          const message: GenericRequest<MY_WORKER_TYPES, REQP> = {
+            requestId,
+            type,
+            requestPayload,
+          };
+          this.worker.postMessage(message);
+        },
+    );
+  }
+
+  sendTransferRequest(
+    requestPayload: REQP,
+    progressMonitor?: ProgressMonitor,
+  ): Promise<RES> {
+    const requestId = this.requestIdCounter++;
+
+    return new Promise<RES>(
       (
-        resolve: (value: R2 | PromiseLike<R2>) => void,
+        resolve: (value: RES | PromiseLike<RES>) => void,
         reject: (reason?: any) => void,
       ) => {
-        // 解決/拒否用のコールバックを保存
-        this.requests.set(
+        this.transfers.set(
           requestId,
-          new WorkerRequestPromise<P, R2>(requestPayload, resolve, reject, progressMonitor),
+          new TransferWorkerPromise<REQP, RES>(
+            requestPayload,
+            resolve,
+            reject,
+            progressMonitor,
+          ),
         );
-        // Workerにメッセージを送信
-        const message: WorkerRequest<T, P> = { requestId, type, requestPayload };
-        this.worker.postMessage(message); // TODO: ここで、transferableについての実装を追加！
+        const message: TransferRequest<REQP> = {
+          requestId,
+          type: WorkerMessageTypeItem.transfer,
+          requestPayload,
+        };
+        this.worker.postMessage(message);
       },
     );
   }
 
   abstract createWorker(): Worker;
 
-  abstract applyMiddleware(result: WorkerResponse<T, R>): R2;
+  abstract instantiateResult(responsePayload: RESP): RES;
+
 }

@@ -1,79 +1,75 @@
 import { JSImageObject } from "./JSImageObject";
 import { applyAverageFilter } from "./JSImageObjectFilter";
-import {
-  CreateRequestMessagePayload,
-  RequestMessages,
-  ResponseMessages,
-  WorkerMessageTypesValues,
-} from "./ImageObjectWorkerTypes";
-import {ProgressMonitorStates} from '../WorkerService';
+import { ProgressMonitorStates, WorkerMessageTypeItem } from "../WorkerService";
+import { CreateRequestMessagePayload, MyWorkerMessageTypeItem, RequestMessages, ResponseMessages } from "../ImageObjectWorkerService";
 
 const cache = new Map<number, JSImageObject>();
 
-function postResponse(message: ResponseMessages) {
-  self.postMessage(message);
-}
 
 self.addEventListener("message", (message: MessageEvent<RequestMessages>) => {
   const { type, requestId } = message.data;
 
   switch (type) {
-    case WorkerMessageTypesValues.create: {
+    case WorkerMessageTypeItem.create: {
       const { width, height, buffer } = message.data
         .requestPayload as CreateRequestMessagePayload;
 
       const imageObject = new JSImageObject(width, height, buffer);
       cache.set(imageObject.id, imageObject);
-
-      postResponse({
-        type: WorkerMessageTypesValues.create,
+      self.postMessage({
+        type: WorkerMessageTypeItem.create,
         requestId,
         responsePayload: {
           id: imageObject.id,
           width,
           height,
-          buffer
         },
       });
       break;
     }
 
-    case WorkerMessageTypesValues.apply_average_filter: {
+    case MyWorkerMessageTypeItem.applyAverageFilter: {
       const { id, iteration } = message.data.requestPayload;
       const imageObject = cache.get(id);
-      if(!imageObject){
+      if (!imageObject) {
         throw new Error("not found id: " + id);
       }
 
-      applyAverageFilter(imageObject, iteration, (progress: ProgressMonitorStates) => {
-        postResponse({
-          type: WorkerMessageTypesValues.apply_average_filter,
-          requestId,
-          responsePayload: {
-            id,
-          },
-          progress: {
-            value: progress.value,
-            valueMin: progress.valueMin,
-            valueMax: progress.valueMax,
-            text: progress.text,
-          }
-        })
-      });
+      applyAverageFilter(
+        imageObject,
+        iteration,
+        (progress: ProgressMonitorStates) => {
+          self.postMessage({
+            type,
+            requestId,
+            responsePayload: {
+              id,
+            },
+            progress: {
+              value: progress.value,
+              valueMin: progress.valueMin,
+              valueMax: progress.valueMax,
+              text: progress.text,
+            },
+          });
+        },
+      );
 
       break;
     }
 
-    case WorkerMessageTypesValues.delete: {
+    case WorkerMessageTypeItem.transfer: {
       const { id } = message.data.requestPayload;
-      const imageObject = cache.delete(id);
-      if(!imageObject){
+      const imageObject = cache.get(id);
+      cache.delete(id);
+      if (!imageObject) {
         throw new Error("not found id: " + id);
       }
+      const { width, height, dataArray } = imageObject;
       postMessage({
-        type: WorkerMessageTypesValues.delete,
+        type: WorkerMessageTypeItem.transfer,
         requestId,
-        responsePayload: { id },
+        responsePayload: { id, width, height, buffer: dataArray.buffer },
       });
       break;
     }

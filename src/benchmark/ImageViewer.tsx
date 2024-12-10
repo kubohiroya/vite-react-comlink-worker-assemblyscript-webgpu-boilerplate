@@ -1,39 +1,41 @@
-import React, {useEffect, useRef} from "react";
+import React, { useEffect, useRef } from "react";
 import { ImageObject } from "./ImageObject";
-import { useImageObjectLoaderContext } from "./useImageObjectLoaderContext";
+import { usePreloadImageObject } from "./usePreloadImageObject";
 
 type ImageViewerProps = {
-    imageObject?: ImageObject;
-}
+  imageObject?: ImageObject;
+};
 export const ImageViewer = (props: ImageViewerProps) => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    const contextImageObject = useImageObjectLoaderContext();
-    const propImageObject = props.imageObject;
-    const imageObject = propImageObject ?? contextImageObject;
+  const preloadImageObject = usePreloadImageObject();
+  const targetImageObject = props.imageObject;
+  const imageObject = targetImageObject ?? preloadImageObject;
 
-    useEffect(() => {
-        if (canvasRef.current == null) return;
+  useEffect(() => {
+    if (canvasRef.current == null) return;
 
-        const context = canvasRef.current.getContext("2d");
-        if (!context) return;
+    const context = canvasRef.current.getContext("2d");
+    if (!context) return;
 
-        canvasRef.current.width = imageObject.width;
-        canvasRef.current.height = imageObject.height;
+    canvasRef.current.width = imageObject.width;
+    canvasRef.current.height = imageObject.height;
 
-        context.putImageData(
-            new ImageData(
-                imageObject.getDataArray(),
-                imageObject.width,
-                imageObject.height,
-            ),
-            0,
-            0,
-        );
+    if (imageObject.width >= 0 && imageObject.height >= 0) {
+      context.putImageData(
+        new ImageData(
+          imageObject.getDataArray(),
+          imageObject.width,
+          imageObject.height,
+        ),
+        0,
+        0,
+      );
+    }
+  }, [
+    canvasRef.current,
+    imageObject
+  ]);
 
-    }, [canvasRef.current]);
-
-    return (
-        <canvas ref={canvasRef} style={{border: "1px solid black"}}/>
-    );
+  return <canvas ref={canvasRef} style={{ border: "1px solid black" }} />;
 };

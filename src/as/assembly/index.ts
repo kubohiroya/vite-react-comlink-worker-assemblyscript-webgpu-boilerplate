@@ -2,8 +2,8 @@ export {
   initialize,
   createImageObject,
   setImageObjectContent,
-  getImageObjectPtr,
-  getImageObjectLen,
+  getImageObjectPtrLen,
   deleteImageObject,
   applyAverageFilter,
+  getImageObjectWidthHeight
 } from "./ASImageObject";

@@ -6,13 +6,12 @@ import React, {
   useEffect,
 } from "react";
 import { JSImageObject } from "./ImageObject/JSImageObject";
+import { ImageObject } from "./ImageObject";
 
-export type ImageObjectLoaderContextType = JSImageObject;
+export const PreloadImageObjectContext =
+  createContext<ImageObject | null>(null);
 
-export const ImageObjectLoaderContext =
-  createContext<ImageObjectLoaderContextType | null>(null);
-
-export const ImageObjectLoaderContextProvider = ({
+export const PreloadImageObjectContextProvider = ({
   src,
   loader,
   children,
@@ -21,8 +20,8 @@ export const ImageObjectLoaderContextProvider = ({
   loader: ReactNode;
   children?: ReactNode;
 }) => {
-  const [imageObjectLoaderContextValue, setImageObjectLoaderContextValue] =
-    useState<ImageObjectLoaderContextType | null>(null);
+  const [preloadImageObject, setPreloadImageObject] =
+    useState<ImageObject | null>(null);
 
   useEffect(() => {
     const canvas = document.createElement("canvas");
@@ -35,26 +34,26 @@ export const ImageObjectLoaderContextProvider = ({
       context.drawImage(offscreenImage, 0, 0);
       const buffer = context.getImageData(0, 0, canvas.width, canvas.height)
         .data.buffer;
-      setImageObjectLoaderContextValue(
+      setPreloadImageObject(
         new JSImageObject(canvas.width, canvas.height, buffer),
       );
     };
     offscreenImage.src = src;
   }, [src]);
 
-  if (imageObjectLoaderContextValue == null) return loader;
+  if (preloadImageObject == null) return loader;
   return (
-    <ImageObjectLoaderContext.Provider value={imageObjectLoaderContextValue}>
+    <PreloadImageObjectContext.Provider value={preloadImageObject}>
       {children}
-    </ImageObjectLoaderContext.Provider>
+    </PreloadImageObjectContext.Provider>
   );
 };
 
-export const useImageObjectLoaderContext = () => {
-  const context = useContext(ImageObjectLoaderContext);
+export const usePreloadImageObject = () => {
+  const context = useContext(PreloadImageObjectContext);
   if (context == null)
     throw new Error(
-      "ImageObjectLoaderContext must be used within a ImageObjectLoaderContextProvider",
+      "ImageObjectLoaderContext must be used within a PreloadImageObjectContextProvider",
     );
   return context;
 };

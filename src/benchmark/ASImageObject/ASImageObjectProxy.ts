@@ -2,7 +2,6 @@ import { ImageObject } from "../ImageObject";
 
 export class ASImageObjectProxy extends ImageObject {
   public id: number;
-  public buffer: ArrayBuffer;
   public ptr: number;
   public len: number;
 
@@ -14,8 +13,7 @@ export class ASImageObjectProxy extends ImageObject {
     len: number,
     id: number,
   ) {
-    super(width, height);
-    this.buffer = buffer;
+    super(width, height, buffer);
     this.ptr = ptr;
     this.len = len;
     this.id = id;
