@@ -18,7 +18,7 @@
     "types": ["node", "vite/client"],
     "composite": true,
     "target": "esnext",
-    "module": "esnext",
+    "module": "commonjs",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
