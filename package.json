@@ -1,12 +1,11 @@
 {
   "name": "vite-react-promise-worker-assemblyscript-boilerplate",
   "version": "1.0.0",
-  "description": "Vite React WebWorker AssemblyScript Boilerplate",
+  "description": "Vite React Promise WebWorker AssemblyScript Boilerplate",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "cpwasm": "cp build/vite-react-promise-worker-assemblyscript-boilerplate/assets/index.* dist/vite-react-promise-worker-assemblyscript-boilerplate/assets/",
-    "predeploy": "pnpm run build && pnpm run cpwasm",
+    "predeploy": "pnpm run build",
     "deploy": "gh-pages -d dist/vite-react-promise-worker-assemblyscript-boilerplate -r git@github.com:kubohiroya/vite-react-promise-worker-assemblyscript-boilerplate.git"
   },
   "private": true,
@@ -30,8 +29,6 @@
     "typescript": "^5.7.2",
     "vite": "^6.0.3",
     "vite-plugin-assemblyscript-asc": "^1.0.5",
-    "vite-plugin-restart": "^0.4.2",
-    "vite-plugin-top-level-await": "^1.4.4",
-    "vite-plugin-wasm": "^3.3.0"
+    "vite-plugin-restart": "^0.4.2"
   }
 }

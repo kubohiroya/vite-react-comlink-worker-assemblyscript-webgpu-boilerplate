@@ -5,7 +5,6 @@ import { CreateRequestMessagePayload, MyWorkerMessageTypeItem, RequestMessages, 
 
 const cache = new Map<number, JSImageObject>();
 
-
 self.addEventListener("message", (message: MessageEvent<RequestMessages>) => {
   const { type, requestId } = message.data;
 
@@ -63,7 +62,7 @@ self.addEventListener("message", (message: MessageEvent<RequestMessages>) => {
       const imageObject = cache.get(id);
       cache.delete(id);
       if (!imageObject) {
-        throw new Error("not found id: " + id);
+        throw new Error("not found: id " + id);
       }
       const { width, height, dataArray } = imageObject;
       postMessage({
@@ -75,7 +74,7 @@ self.addEventListener("message", (message: MessageEvent<RequestMessages>) => {
     }
 
     default: {
-      throw new Error("unknown message:" + JSON.stringify(message.data));
+      throw new Error("unknown message: " + JSON.stringify(message.data));
     }
   }
 });

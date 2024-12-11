@@ -1,7 +1,7 @@
 {
   "entries": ["./src/as/assembly/index.ts"],
   "options": {
-    "bindings": "raw",
+    "bindings": "esm",
     "enable": ["reference-types","threads"],
     "runtime": "minimal",
     "exportRuntime": true

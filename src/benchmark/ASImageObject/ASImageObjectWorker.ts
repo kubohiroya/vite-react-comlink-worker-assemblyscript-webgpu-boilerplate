@@ -1,98 +1,88 @@
-import { instantiate } from "../../../build/vite-react-promise-worker-assemblyscript-boilerplate/assets";
+import * as wasm from "../../../build/vite-react-promise-worker-assemblyscript-boilerplate/assets";
 import { CreateRequestMessagePayload, MyWorkerMessageTypeItem, RequestMessages } from "../ImageObjectWorkerService";
 import { WorkerMessageTypeItem } from "../WorkerService";
 
-WebAssembly.compileStreaming(
-    fetch("../../../build/vite-react-promise-worker-assemblyscript-boilerplate/assets/index.wasm"),
-).then(compiled=> {
-  instantiate(
-      compiled,
-      {
-        hostModule: {
-          postProgressMessage(
-              id: number,
-              value: number,
-              valueMax: number,
-              requestId: number,
-          ) {
-            self.postMessage({
-              type: MyWorkerMessageTypeItem.applyAverageFilter,
-              requestId,
-              responsePayload: {
-                id,
-              },
-              progress: {
-                value,
-                valueMax,
-              },
-            });
-          },
+self.addEventListener("message", (message: MessageEvent<RequestMessages>) => {
+  const {type, requestId} = message.data;
+
+  switch (type) {
+    case WorkerMessageTypeItem.create: {
+      const {width, height, buffer} = message.data.requestPayload as CreateRequestMessagePayload;
+      const id = wasm.createImageObject(width, height);
+      const dataArraySource = new Uint8ClampedArray(buffer);
+      wasm.setImageObjectContent(id, dataArraySource);
+
+      self.postMessage({
+        type: WorkerMessageTypeItem.create,
+        requestId,
+        responsePayload: {
+          id,
+          width,
+          height,
         },
-      } as any,
-  ).then(wasmInstance => {
-    self.addEventListener("message", (message: MessageEvent<RequestMessages>) => {
-      const { type, requestId } = message.data;
+      });
+      break;
+    }
 
-      switch (type) {
-        case WorkerMessageTypeItem.create: {
-          const { width, height, buffer } = message.data.requestPayload as CreateRequestMessagePayload;
-          const id = wasmInstance.createImageObject(width, height);
-          const dataArraySource = new Uint8ClampedArray(buffer);
-          wasmInstance.setImageObjectContent(id, dataArraySource);
+    case MyWorkerMessageTypeItem.applyAverageFilter: {
+      const {id, iteration} = message.data.requestPayload;
+      wasm.applyAverageFilter(id, iteration, type, requestId);
+      self.postMessage({
+        type,
+        requestId,
+        responsePayload: {
+          id,
+        },
+      });
+      break;
+    }
 
-          self.postMessage({
-            type: WorkerMessageTypeItem.create,
+    case WorkerMessageTypeItem.transfer: {
+      const {id} = message.data.requestPayload;
+      const [width, height] = wasm.getImageObjectWidthHeight(id);
+      const [ptr, len] = wasm.getImageObjectPtrLen(id);
+      const dataArrayView = new Uint8ClampedArray(
+          wasm.memory.buffer,
+          ptr,
+          len,
+      );
+      const dataArray = Uint8ClampedArray.from(dataArrayView);
+      wasm.deleteImageObject(id);
+
+      self.postMessage(
+          {
+            type: WorkerMessageTypeItem.transfer,
             requestId,
-            responsePayload: {
-              id,
-              width,
-              height,
-            },
-          });
-          break;
-        }
+            responsePayload: {id, width, height, buffer: dataArray.buffer},
+          },
+          [dataArray.buffer],
+      );
+      break;
+    }
 
-        case MyWorkerMessageTypeItem.applyAverageFilter: {
-          const { id, iteration } = message.data.requestPayload;
-          wasmInstance.applyAverageFilter(id, iteration, requestId);
-          self.postMessage({
-            type,
-            requestId,
-            responsePayload: {
-              id,
-            },
-          });
-          break;
-        }
-
-        case WorkerMessageTypeItem.transfer: {
-          const { id } = message.data.requestPayload;
-          const [width, height] = wasmInstance.getImageObjectWidthHeight(id);
-          const [ptr, len] = wasmInstance.getImageObjectPtrLen(id);
-          const dataArrayView = new Uint8ClampedArray(
-              wasmInstance.memory.buffer,
-              ptr,
-              len,
-          );
-          const dataArray = Uint8ClampedArray.from(dataArrayView);
-          wasmInstance.deleteImageObject(id);
-
-          self.postMessage(
-              {
-                type: WorkerMessageTypeItem.transfer,
-                requestId,
-                responsePayload: { id, width, height, buffer: dataArray.buffer },
-              },
-              [dataArray.buffer],
-          );
-          break;
-        }
-
-        default: {
-          throw new Error("unknown message:" + JSON.stringify(message.data));
-        }
-      }
-    });
-
-  });
+    default: {
+      throw new Error("unknown message:" + JSON.stringify(message.data));
+    }
+  }
 });
+
+(globalThis as any).postProgressMessage = function postProgressMessage(
+    id: number,
+    value: number,
+    valueMax: number,
+    type: number,
+    requestId: number,
+):void {
+  self.postMessage({
+    type,
+    requestId,
+    responsePayload: {
+      id,
+    },
+    progress: {
+      value,
+      valueMax,
+    },
+  });
+};
+

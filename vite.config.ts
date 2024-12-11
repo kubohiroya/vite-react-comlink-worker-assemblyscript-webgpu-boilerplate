@@ -1,7 +1,5 @@
 import { defineConfig } from 'vite';
 import assemblyScriptPlugin from 'vite-plugin-assemblyscript-asc';
-import wasm from 'vite-plugin-wasm';
-import topLevelAwait from "vite-plugin-top-level-await";
 import react from '@vitejs/plugin-react';
 import ViteRestart from 'vite-plugin-restart'
 
@@ -16,7 +14,7 @@ export default defineConfig({
     }
   },
 
-  base: `/${projectName}`,
+  base: `/${projectName}/`,
 
   resolve: {
     alias: {
@@ -33,8 +31,6 @@ export default defineConfig({
       targetWasmFile: `./build/${projectName}/assets/index.wasm`,
       distFolder: 'dist',
     }) as any,
-      wasm(),
-      topLevelAwait(),
     ViteRestart({
       restart: [
         'src/as/assembly/**/*.ts',
@@ -42,8 +38,16 @@ export default defineConfig({
     }),
   ],
   worker: {
+    rollupOptions: {
+      output: {
+        format: "es",
+        inlineDynamicImports: true,
+      }
+    },
     format: 'es',
-  },
+    plugins: ()=>[
+    ]
+  } as any,
   build: {
     target: 'esnext',
     outDir: `./dist/${projectName}`,

@@ -58,7 +58,7 @@ export function deleteImageObject(id: u32): void {
 }
 
 // 平均化フィルタを適用
-export function applyAverageFilter(id: u32, iteration: i32, requestId: i32): void {
+export function applyAverageFilter(id: u32, iteration: i32, type: u32, requestId: i32): void {
   const imageObject = ASImageObjects.getSingleton().get(id);
   if (!imageObject) throw new Error("Invalid ImageObject ID");
 
@@ -68,7 +68,7 @@ export function applyAverageFilter(id: u32, iteration: i32, requestId: i32): voi
   const copy = new Uint8ClampedArray(u32(width * height * 4));
 
   for (let c = 0; c < iteration; c++) {
-    postProgressMessage(id, c, iteration, requestId);
+    postProgressMessage(id, c, iteration, type, requestId);
     copy.set(imageArray);
     for (let y = 1; y < height - 1; y++) {
       for (let x = 1; x < width - 1; x++) {
@@ -95,8 +95,9 @@ export function applyAverageFilter(id: u32, iteration: i32, requestId: i32): voi
       }
     }
   }
-  postProgressMessage(id, iteration, iteration, requestId);
+  postProgressMessage(id, iteration, iteration, type, requestId);
 }
 
-@external("hostModule", "postProgressMessage")
-export declare function postProgressMessage(id: u32, value: u32, maxValue: u32, requestId: u32): void;
+// @external("../../../src/benchmark/ASImageObject/callback.js", "postProgressMessage")
+@external("env", "postProgressMessage")
+export declare function postProgressMessage(id: u32, value: u32, maxValue: u32, type: u32, requestId: u32): void;
