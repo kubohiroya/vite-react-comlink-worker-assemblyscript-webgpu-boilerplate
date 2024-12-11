@@ -2,11 +2,11 @@ import { ImageObject } from "./ImageObject";
 import {BaseWorkerMessageTypes, CreateRequest, GenericRequest, ProgressMonitor,
     TransferRequest, WorkerMessageTypeItem, WorkerService } from "./WorkerService";
 
-export enum MyWorkerMessageTypeItem{
-  applyAverageFilter = 100
+export enum ImageObjectWorkerMessageTypeItem{
+  applyAverageFilter = 3
 };
 
-type MyWorkerMessageTypes = BaseWorkerMessageTypes | MyWorkerMessageTypeItem.applyAverageFilter;
+export type ImageObjectWorkerMessageTypes = BaseWorkerMessageTypes | ImageObjectWorkerMessageTypeItem.applyAverageFilter;
 
 export type CreateRequestMessagePayload = {
   width: number;
@@ -26,13 +26,13 @@ export type RequestMessagePayload = GenericRequestMessagePayload | ApplyAverageF
 export type ResponseMessagePayload = {id: number};
 
 export type RequestMessages = CreateRequest<CreateRequestMessagePayload>
-    | GenericRequest<MyWorkerMessageTypeItem.applyAverageFilter, ApplyAverageFilterRequestMessagePayload>
+    | GenericRequest<ImageObjectWorkerMessageTypeItem.applyAverageFilter, ApplyAverageFilterRequestMessagePayload>
     | TransferRequest<GenericRequestMessagePayload>;
 export type ResponseMessages = {}
 
 
 export abstract class ImageObjectWorkerService extends WorkerService<
-    MyWorkerMessageTypes,
+    ImageObjectWorkerMessageTypes,
     CreateRequestMessagePayload,
     RequestMessagePayload,
     ResponseMessagePayload,
@@ -58,7 +58,7 @@ export abstract class ImageObjectWorkerService extends WorkerService<
       progressMonitor: ProgressMonitor,
   ): Promise<ResponseMessagePayload> {
     return this.sendGenericRequest(
-        MyWorkerMessageTypeItem.applyAverageFilter,
+        ImageObjectWorkerMessageTypeItem.applyAverageFilter,
         {
           id,
           iteration,

@@ -26,15 +26,15 @@ export type GenericResponseMessagePayload = {
   id: number;
 }
 
-export type CreateRequest<MY_CREATE_PAYLOAD> = {
+export type CreateRequest<CREATE_PAYLOAD> = {
   requestId: number;
   type: WorkerMessageTypeItem.create;
-  requestPayload: MY_CREATE_PAYLOAD;
+  requestPayload: CREATE_PAYLOAD;
 }
 
-export interface GenericRequest<MY_WORKER_TYPES, REQP extends GenericRequestMessagePayload> {
+export interface GenericRequest<WORKER_TYPES, REQP extends GenericRequestMessagePayload> {
   requestId: number;
-  type: MY_WORKER_TYPES;
+  type: WORKER_TYPES;
   requestPayload: REQP;
 }
 
@@ -44,10 +44,10 @@ export interface TransferRequest<REQP> {
   requestPayload: REQP;
 }
 
-export interface GenericResponse<MY_MESSAGE_TYPES, MY_RES_PAYLOAD> {
+export interface GenericResponse<MESSAGE_TYPES, RES_PAYLOAD> {
   requestId: number;
-  type: MY_MESSAGE_TYPES;
-  responsePayload: MY_RES_PAYLOAD;
+  type: MESSAGE_TYPES;
+  responsePayload: RES_PAYLOAD;
   progress?: ProgressMonitorStates;
   error?: any;
 }
@@ -71,9 +71,9 @@ class AbstractWorkerPromise<REQP, RESOLVE> {
   }
 }
 
-class CreateWorkerPromise<MY_CREATE_PAYLOAD> extends AbstractWorkerPromise<MY_CREATE_PAYLOAD, (value: number | PromiseLike<number>) => void> {
+class CreateWorkerPromise<CREATE_PAYLOAD> extends AbstractWorkerPromise<CREATE_PAYLOAD, (value: number | PromiseLike<number>) => void> {
   constructor(
-      requestPayload: MY_CREATE_PAYLOAD,
+      requestPayload: CREATE_PAYLOAD,
       resolve: (value: number | PromiseLike<number>) => void,
       reject: (reason?: any) => void,
       progressMonitor: ProgressMonitor | undefined,
@@ -107,14 +107,14 @@ class TransferWorkerPromise<REQP extends GenericRequestMessagePayload, RES> exte
 }
 
 export abstract class WorkerService<
-    MY_WORKER_TYPES,
-    MY_CREATE_PAYLOAD,
+    WORKER_TYPES,
+    CREATE_PAYLOAD,
     REQP extends GenericRequestMessagePayload,
     RESP extends GenericResponseMessagePayload,
     RES> {
   requestIdCounter = 0;
 
-  creates = new Map<number, CreateWorkerPromise<MY_CREATE_PAYLOAD>>();
+  creates = new Map<number, CreateWorkerPromise<CREATE_PAYLOAD>>();
   requests = new Map<number, GenericWorkerPromise<REQP, RESP>>();
   transfers = new Map<number, TransferWorkerPromise<REQP, RES>>();
 
@@ -122,7 +122,7 @@ export abstract class WorkerService<
 
   constructor() {
     this.worker = this.createWorker();
-    this.worker.onmessage = (event: MessageEvent<GenericResponse<MY_WORKER_TYPES, RESP>>) => {
+    this.worker.onmessage = (event: MessageEvent<GenericResponse<WORKER_TYPES, RESP>>) => {
       const { requestId, error, progress } = event.data;
       if (this.creates.has(requestId)) {
         const { resolve } = this.creates.get(requestId)!;
@@ -150,7 +150,7 @@ export abstract class WorkerService<
     };
   }
 
-  sendCreateRequest(requestPayload: MY_CREATE_PAYLOAD,
+  sendCreateRequest(requestPayload: CREATE_PAYLOAD,
                     progressMonitor?: ProgressMonitor,): Promise<number>{
     const requestId = this.requestIdCounter++; // 一意のIDを生成
 
@@ -162,14 +162,14 @@ export abstract class WorkerService<
           // 解決/拒否用のコールバックを保存
           this.creates.set(
               requestId,
-              new CreateWorkerPromise<MY_CREATE_PAYLOAD>(
+              new CreateWorkerPromise<CREATE_PAYLOAD>(
                   requestPayload,
                   resolve,
                   reject,
                   progressMonitor,
               ),
           );
-          const message: CreateRequest<MY_CREATE_PAYLOAD> = {
+          const message: CreateRequest<CREATE_PAYLOAD> = {
             requestId,
             type: WorkerMessageTypeItem.create,
             requestPayload,
@@ -180,7 +180,7 @@ export abstract class WorkerService<
   }
 
   sendGenericRequest(
-      type: MY_WORKER_TYPES,
+      type: WORKER_TYPES,
       requestPayload: REQP,
       progressMonitor?: ProgressMonitor,
   ): Promise<GenericResponseMessagePayload> {
@@ -201,7 +201,7 @@ export abstract class WorkerService<
                   progressMonitor,
               ),
           );
-          const message: GenericRequest<MY_WORKER_TYPES, REQP> = {
+          const message: GenericRequest<WORKER_TYPES, REQP> = {
             requestId,
             type,
             requestPayload,

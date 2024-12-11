@@ -1,7 +1,7 @@
 import { JSImageObject } from "./JSImageObject";
 import { applyAverageFilter } from "./JSImageObjectFilter";
 import { ProgressMonitorStates, WorkerMessageTypeItem } from "../WorkerService";
-import { CreateRequestMessagePayload, MyWorkerMessageTypeItem, RequestMessages, ResponseMessages } from "../ImageObjectWorkerService";
+import { CreateRequestMessagePayload, ImageObjectWorkerMessageTypeItem, RequestMessages, ResponseMessages } from "../ImageObjectWorkerService";
 
 const cache = new Map<number, JSImageObject>();
 
@@ -27,7 +27,7 @@ self.addEventListener("message", (message: MessageEvent<RequestMessages>) => {
       break;
     }
 
-    case MyWorkerMessageTypeItem.applyAverageFilter: {
+    case ImageObjectWorkerMessageTypeItem.applyAverageFilter: {
       const { id, iteration } = message.data.requestPayload;
       const imageObject = cache.get(id);
       if (!imageObject) {

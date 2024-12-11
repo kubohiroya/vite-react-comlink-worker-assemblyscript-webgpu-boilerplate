@@ -1,5 +1,5 @@
 import * as wasm from "../../../build/vite-react-promise-worker-assemblyscript-boilerplate/assets";
-import { CreateRequestMessagePayload, MyWorkerMessageTypeItem, RequestMessages } from "../ImageObjectWorkerService";
+import { CreateRequestMessagePayload, ImageObjectWorkerMessageTypeItem, RequestMessages } from "../ImageObjectWorkerService";
 import { WorkerMessageTypeItem } from "../WorkerService";
 
 self.addEventListener("message", (message: MessageEvent<RequestMessages>) => {
@@ -24,7 +24,7 @@ self.addEventListener("message", (message: MessageEvent<RequestMessages>) => {
       break;
     }
 
-    case MyWorkerMessageTypeItem.applyAverageFilter: {
+    case ImageObjectWorkerMessageTypeItem.applyAverageFilter: {
       const {id, iteration} = message.data.requestPayload;
       wasm.applyAverageFilter(id, iteration, type, requestId);
       self.postMessage({
