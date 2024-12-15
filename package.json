@@ -17,7 +17,6 @@
     "@mui/system": "^6.2.0",
     "@mui/x-charts": "^7.23.1",
     "comlink": "^4.4.2",
-    "import-from-worker": "^1.0.1",
     "jotai": "^2.10.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
