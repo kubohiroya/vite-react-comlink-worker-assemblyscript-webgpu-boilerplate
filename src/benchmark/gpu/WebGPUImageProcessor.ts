@@ -1,7 +1,7 @@
 import { ImageProcessor } from "../ImageProcessor";
 import { ProgressMonitor } from "../ProgressMonitor";
 import shaderCode from "./averageFilter.wgsl?raw";
-export class WebGPUImageProcessor extends ImageProcessor {
+export class WebGPUImageProcessor implements ImageProcessor {
   private device: GPUDevice;
   private pipeline!: GPUComputePipeline;
   private bindGroupLayout!: GPUBindGroupLayout;
@@ -13,7 +13,6 @@ export class WebGPUImageProcessor extends ImageProcessor {
   private imageArray!: Uint8ClampedArray;
 
   constructor(device: GPUDevice) {
-    super();
     this.device = device;
   }
 

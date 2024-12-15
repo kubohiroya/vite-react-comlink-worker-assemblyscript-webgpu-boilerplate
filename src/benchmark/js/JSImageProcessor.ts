@@ -4,11 +4,10 @@ import {JSImageObject} from "../JSImageObject";
 import {ProgressMonitor} from "../ProgressMonitor";
 import { ImageProcessor } from "../ImageProcessor";
 
-export class JSImageProcessor extends ImageProcessor{
+export class JSImageProcessor implements ImageProcessor{
   public imageObject!: JSImageObject;
 
   constructor() {
-    super();
   }
 
   public async initialize(

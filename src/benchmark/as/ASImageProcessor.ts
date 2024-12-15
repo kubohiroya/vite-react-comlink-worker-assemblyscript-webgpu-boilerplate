@@ -5,11 +5,10 @@ import * as wasm from "../../../build/vite-react-comlink-worker-assemblyscript-b
 import { ProgressMonitor } from "../ProgressMonitor";
 import { ImageProcessor } from "../ImageProcessor";
 
-export class ASImageProcessor extends ImageProcessor {
+export class ASImageProcessor implements ImageProcessor {
   public id!: number;
 
   constructor() {
-    super();
   }
 
   public async initialize(
