@@ -1,20 +1,24 @@
 {
-  "name": "vite-react-promise-worker-assemblyscript-boilerplate",
+  "name": "vite-react-comlink-worker-assemblyscript-webgpu-boilerplate",
   "version": "1.0.0",
-  "description": "Vite React Promise WebWorker AssemblyScript Boilerplate",
+  "description": "Vite React Comlink WebWorker AssemblyScript WebGPU Boilerplate",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
     "predeploy": "pnpm run build",
-    "deploy": "gh-pages -d dist/vite-react-promise-worker-assemblyscript-boilerplate -r git@github.com:kubohiroya/vite-react-promise-worker-assemblyscript-boilerplate.git"
+    "deploy": "gh-pages -d dist/vite-react-comlink-worker-assemblyscript-webgpu-boilerplate -r git@github.com:kubohiroya/vite-react-comlink-worker-assemblyscript-webgpu-boilerplate.git"
   },
-  "private": true,
+  "type": "module",
   "dependencies": {
     "@emotion/react": "^11.13.5",
     "@emotion/styled": "^11.13.5",
     "@mui/lab": "6.0.0-beta.18",
     "@mui/material": "^6.1.10",
+    "@mui/system": "^6.2.0",
     "@mui/x-charts": "^7.23.1",
+    "comlink": "^4.4.2",
+    "import-from-worker": "^1.0.1",
+    "jotai": "^2.10.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
@@ -22,6 +26,7 @@
     "@types/react": "^18.3.14",
     "@types/react-dom": "^18.3.2",
     "@vitejs/plugin-react": "^4.3.4",
+    "@webgpu/types": "^0.1.51",
     "assemblyscript": "^0.27.31",
     "gh-pages": "^6.2.0",
     "prettier": "^3.4.2",
@@ -29,6 +34,7 @@
     "typescript": "^5.7.2",
     "vite": "^6.0.3",
     "vite-plugin-assemblyscript-asc": "^1.0.5",
+    "vite-plugin-comlink": "^5.1.0",
     "vite-plugin-restart": "^0.4.2"
   }
 }

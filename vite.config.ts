@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite';
 import assemblyScriptPlugin from 'vite-plugin-assemblyscript-asc';
 import react from '@vitejs/plugin-react';
+import { comlink } from 'vite-plugin-comlink';
 import ViteRestart from 'vite-plugin-restart'
 
-const projectName = 'vite-react-promise-worker-assemblyscript-boilerplate';
+const projectName = 'vite-react-comlink-worker-assemblyscript-webgpu-boilerplate';
 export default defineConfig({
   server: {
     port: 4200,
@@ -31,21 +32,23 @@ export default defineConfig({
       targetWasmFile: `./build/${projectName}/assets/index.wasm`,
       distFolder: 'dist',
     }) as any,
+    comlink(),
     ViteRestart({
       restart: [
         'src/as/assembly/**/*.ts',
-      ]
-    }),
+ ]
+ })
+
   ],
   worker: {
     rollupOptions: {
       output: {
         format: "es",
-        inlineDynamicImports: true,
       }
     },
     format: 'es',
     plugins: ()=>[
+      comlink(),
     ]
   } as any,
   build: {
@@ -67,3 +70,5 @@ export default defineConfig({
     },
   },
 });
+
+

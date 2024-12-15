@@ -1,101 +1,138 @@
-import { useCallback, useRef, useState } from "react";
-import { usePreloadImageObject } from "./usePreloadImageObject";
-import { Box, Button, Stack, styled } from "@mui/material";
+import { proxy } from "comlink";
+import {
+  Box,
+  Button,
+  LinearProgress,
+  Stack,
+  styled,
+  Typography,
+} from "@mui/material";
 import { ImageViewer } from "./ImageViewer";
+import { JSImageObject } from "./JSImageObject";
+import { useCallback, useState } from "react";
+import { usePreloadImageObject } from "./usePreloadImageObject";
+import { ProgressMeter } from "../components/ProgressMeter";
+import { ImageProcessor } from "./ImageProcessor";
+import { decrementActiveCountAtom, incrementActiveCountAtom } from "./atoms";
+import { useAtom } from "jotai";
 
-import { Gauge, gaugeClasses } from "@mui/x-charts/Gauge";
-import { ImageObjectWorkerService } from "./ImageObjectWorkerService";
-import { ImageObject } from "./ImageObject";
-
-const Caption = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(1),
+const ImageCaption = styled(Box)(({ theme }) => ({
+  fontSize: 30,
+  fontStyle: "bold",
   textAlign: "center",
 }));
 
 export const ImageFilterBenchmark = ({
   title,
+  processor,
   iteration,
-  workerService,
+  options,
 }: {
   title: string;
+  processor: ImageProcessor;
   iteration: number;
-  workerService: ImageObjectWorkerService;
+  options?: {
+    isWorker?: boolean;
+    simd?: boolean;
+  };
 }) => {
   const preloadImageObject = usePreloadImageObject();
-  const [targetImageObject, setTargetImageObject] = useState<ImageObject>();
+  const [targetImageObject, setTargetImageObject] = useState<JSImageObject>();
   const [isStarted, setStarted] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
   const [isFinished, setFinished] = useState<boolean>(false);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
 
-  const startBenchmark = useCallback(() => {
+  const [, incrementActiveCount] = useAtom(incrementActiveCountAtom);
+  const [, decrementActiveCount] = useAtom(decrementActiveCountAtom);
+
+  const updateProgress = useCallback(
+    (width: number, height: number, startedTime: number) =>
+      ({ value }: { value: number }): Promise<void> => {
+        setProgress(value);
+        setElapsedTime(performance.now() - startedTime);
+        if (value === iteration) {
+          processor.transfer().then((array) => {
+            const updatedImageObject = new JSImageObject(
+              width,
+              height,
+              new Uint8ClampedArray(array),
+            );
+            setTargetImageObject(updatedImageObject);
+            setFinished(true);
+            decrementActiveCount();
+          });
+        }
+        return Promise.resolve();
+      },
+    [iteration, processor, decrementActiveCount],
+  );
+
+  const startProcessor = useCallback(() => {
+    incrementActiveCount();
     setStarted(true);
-    const startedTime = performance.now();
     setElapsedTime(0);
-    workerService
-      .create(
-        preloadImageObject.width,
-        preloadImageObject.height,
-        preloadImageObject.buffer,
-      )
-      .then((imageObjectId: number) => {
-        workerService.applyAverageFilter(
-          imageObjectId as number,
-          iteration,
-          ({value, valueMax}:{ value: number, valueMax: number }) => {
-            setProgress(value);
-            setElapsedTime(performance.now() - startedTime);
-            if (value === valueMax) {
-              workerService
-                .transfer(imageObjectId as number)
-                .then((targetImageObject: ImageObject) => {
-                  setTargetImageObject(targetImageObject);
-                  setFinished(true);
-                });
-            }
-          },
-        );
-      });
-  }, [preloadImageObject]);
+    const startedTime = performance.now();
+    const [width, height] = [
+      preloadImageObject.width,
+      preloadImageObject.height,
+    ];
+    processor.initialize(width, height, preloadImageObject.getData().slice(0));
+    processor.applyAverageFilter(
+      iteration,
+      options || {},
+      options?.isWorker
+        ? proxy(updateProgress(width, height, startedTime))
+        : updateProgress(width, height, startedTime),
+    );
+  }, [processor, iteration, options, incrementActiveCount, preloadImageObject]);
+
+  const reset = () => {
+    setStarted(false);
+    setProgress(0);
+    setFinished(false);
+    setElapsedTime(0);
+    setTargetImageObject(undefined);
+  };
 
   return (
     <>
-      <Box>
-        <h2>{title}</h2>
-        <Stack alignItems="center" spacing={2}>
+      <Stack direction="column" marginBottom={5}>
+        <Stack alignItems="center" spacing={0}>
           {!isStarted ? (
-            <Button variant="outlined" onClick={startBenchmark}>
-              Start
-            </Button>
+            <>
+              <Typography>{title}</Typography>
+              <Button variant="outlined" onClick={startProcessor}>
+                Start
+              </Button>
+            </>
           ) : !isFinished ? (
             <>
-              <Gauge
-                width={200}
-                height={200}
-                value={progress}
-                valueMax={iteration}
-                sx={{
-                  [`& .${gaugeClasses.valueText}`]: {
-                    fontSize: 20,
-                    transform: "translate(0px, 0px)",
-                  },
-                }}
-                text={({ value, valueMax }) => `${value} / ${valueMax}`}
-              />
-              <Caption>{(elapsedTime / 1000).toFixed(2)} sec</Caption>
+              <ProgressMeter value={progress} valueMax={iteration} />
+              <ImageCaption>{(elapsedTime / 1000).toFixed(2)} sec</ImageCaption>
             </>
           ) : (
             <>
               <ImageViewer
+                scale={0.3}
                 imageObject={
                   targetImageObject ? targetImageObject : preloadImageObject
                 }
               />
-              <Caption>{(elapsedTime / 1000).toFixed(2)} sec</Caption>
+              <LinearProgress value={100} variant={"determinate"} />
+              <Stack direction="row" spacing={2}>
+                <Typography>{title}</Typography>
+                <ImageCaption>
+                  {(elapsedTime / 1000).toFixed(2)} sec
+                </ImageCaption>
+                <Button variant="outlined" onClick={reset} size={"small"}>
+                  Reset
+                </Button>
+              </Stack>
             </>
           )}
         </Stack>
-      </Box>
+      </Stack>
     </>
   );
 };

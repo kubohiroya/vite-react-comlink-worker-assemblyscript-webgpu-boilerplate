@@ -5,11 +5,11 @@ import React, {
   ReactNode,
   useEffect,
 } from "react";
-import { JSImageObject } from "./ImageObject/JSImageObject";
-import { ImageObject } from "./ImageObject";
+import { JSImageObject } from "./JSImageObject";
 
-export const PreloadImageObjectContext =
-  createContext<ImageObject | null>(null);
+export const PreloadImageObjectContext = createContext<JSImageObject | null>(
+  null,
+);
 
 export const PreloadImageObjectContextProvider = ({
   src,
@@ -21,7 +21,7 @@ export const PreloadImageObjectContextProvider = ({
   children?: ReactNode;
 }) => {
   const [preloadImageObject, setPreloadImageObject] =
-    useState<ImageObject | null>(null);
+    useState<JSImageObject | null>(null);
 
   useEffect(() => {
     const canvas = document.createElement("canvas");

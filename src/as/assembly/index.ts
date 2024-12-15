@@ -1,7 +1,6 @@
 export {
-  initialize,
   createImageObject,
-  setImageObjectContent,
+  setImageObjectData,
   getImageObjectPtrLen,
   deleteImageObject,
   applyAverageFilter,

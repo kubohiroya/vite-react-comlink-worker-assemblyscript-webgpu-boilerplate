@@ -2,7 +2,7 @@
   "entries": ["./src/as/assembly/index.ts"],
   "options": {
     "bindings": "esm",
-    "enable": ["reference-types","threads"],
+    "enable": ["reference-types","simd"],
     "runtime": "minimal",
     "exportRuntime": true
   },

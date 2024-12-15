@@ -14,18 +14,20 @@
     "baseUrl": ".",
     "jsx": "react-jsx",
     "allowJs": false,
+    "allowImportingTsExtensions": true,
     "strict": true,
-    "types": ["node", "vite/client"],
+    "types": ["node", "vite/client", "vite-plugin-comlink/client", "@webgpu/types"],
     "composite": true,
     "target": "esnext",
-    "module": "commonjs",
+    "module": "esnext",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "isolatedModules": true,
+    "resolveJsonModule": true,
     "paths": {
     }
   },
   "exclude": ["node_modules", "dist"],
-  "include": ["./src/**/*.ts", "./src/**/*.tsx"]
+  "include": ["./src/**/*.ts", "./src/**/*.tsx", "package.json"]
 }
