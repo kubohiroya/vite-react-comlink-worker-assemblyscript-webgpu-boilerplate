@@ -144,5 +144,6 @@ export function applyAverageFilter(id: u32, simd:boolean, iteration: i32): void 
   postProgressMessage(iteration, iteration);
 }
 
+// @ts-ignore: decorator
 @external("env", "postProgressMessage")
 export declare function postProgressMessage(value: u32, maxValue: u32): void;
