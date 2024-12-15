@@ -29,6 +29,7 @@ const IMAGE_SOURCE_URL = project.name+'/The_Great_Wave_off_Kanagawa.jpg';
 const COUNT = 200;
 
 const jsImageProcessor = new JSImageProcessor();
+const asImageProcessor = new ASImageProcessor();
 
 const jsImageWorkerProcessor = new ComlinkWorker<JSImageProcessor>(
   new URL("./js/JSImageProcessor", import.meta.url),
@@ -135,7 +136,7 @@ export const App = () => {
           <ImageFilterBenchmark
             title={"AssemblyScript"}
             iteration={count}
-            processor={new ASImageProcessor()}
+            processor={asImageProcessor}
             options={{ isWorker: false }}
           />
           <ImageFilterBenchmark
