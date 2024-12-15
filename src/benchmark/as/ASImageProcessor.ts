@@ -1,6 +1,6 @@
 import * as Comlink from "comlink";
 
-import * as wasm from "../../../build/vite-react-promise-worker-assemblyscript-boilerplate/assets";
+import * as wasm from "../../../build/vite-react-comlink-worker-assemblyscript-boilerplate/assets";
 
 import { ProgressMonitor } from "../ProgressMonitor";
 import { ImageProcessor } from "../ImageProcessor";

@@ -9,13 +9,13 @@
   "targets": {
     "release": {
       "optimize": true,
-      "outFile": "./build/vite-react-promise-worker-assemblyscript-boilerplate/assets/index.wasm",
-      "textFile": "./build/vite-react-promise-worker-assemblyscript-boilerplate/assets/index.wat"
+      "outFile": "./build/vite-react-comlink-worker-assemblyscript-boilerplate/assets/index.wasm",
+      "textFile": "./build/vite-react-comlink-worker-assemblyscript-boilerplate/assets/index.wat"
     },
     "debug": {
       "debug": true,
-      "outFile": "./build/vite-react-promise-worker-assemblyscript-boilerplate/assets.debug/index.wasm",
-      "textFile": "./build/vite-react-promise-worker-assemblyscript-boilerplate/assets/index.wat"
+      "outFile": "./build/vite-react-comlink-worker-assemblyscript-boilerplate/assets.debug/index.wasm",
+      "textFile": "./build/vite-react-comlink-worker-assemblyscript-boilerplate/assets/index.wat"
     }
   }
 }

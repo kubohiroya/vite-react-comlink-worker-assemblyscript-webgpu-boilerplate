@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "preview": "vite preview",
     "predeploy": "pnpm run build",
     "deploy": "gh-pages -d dist/vite-react-comlink-worker-assemblyscript-webgpu-boilerplate -r git@github.com:kubohiroya/vite-react-comlink-worker-assemblyscript-webgpu-boilerplate.git"
   },
