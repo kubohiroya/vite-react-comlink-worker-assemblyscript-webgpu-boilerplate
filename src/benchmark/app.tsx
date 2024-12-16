@@ -26,7 +26,7 @@ import { useAtom } from "jotai";
 import { activeCountAtom } from "./atoms";
 
 const IMAGE_SOURCE_URL = project.name+'/The_Great_Wave_off_Kanagawa.jpg';
-const COUNT = 200;
+const ITERATION_DEFAULT = 200;
 
 const jsImageProcessor = new JSImageProcessor();
 const asImageProcessor = new ASImageProcessor();
@@ -76,11 +76,21 @@ const ImageFilterContainer = ({
   );
 };
 
+const AppHeader = ()=>{
+  return (<>
+        <DigitalClock />
+        <ImageViewer scale={1} height={100} dy={-440} />
+  </>
+  );
+}
+
+const mode = new URLSearchParams(location.search).get("mode");
+
 export const App = () => {
-  const [count, setCount] = useState<number>(COUNT);
+  const [iteration, setIteration] = useState<number>(ITERATION_DEFAULT);
   const [activeCount] = useAtom(activeCountAtom);
 
-  if(new URLSearchParams(location.search).get("mode") === "clock"){
+  if(mode === "clock"){
     return <DigitalClock />
   }
 
@@ -90,16 +100,13 @@ export const App = () => {
       loader={<CircularProgress />}
     >
       <Stack direction={"column"}>
-        <DigitalClock />
-        <LinearProgress variant="indeterminate" />
-        <ImageViewer scale={1} height={100} dy={-440} />
+        <AppHeader/>
         <Box style={{ margin: "35px 100px 30px 100px" }}>
           <Slider
-            defaultValue={COUNT}
             disabled={activeCount !== 0}
-            value={count}
+            value={iteration}
             onChange={(_: any, value: number | number[]) =>
-              setCount(value as number)
+              setIteration(value as number)
             }
             min={0}
             max={500}
@@ -120,13 +127,13 @@ export const App = () => {
         <ImageFilterContainer title={"JavaScript"}>
           <ImageFilterBenchmark
             title={"JavaScript"}
-            iteration={count}
+            iteration={iteration}
             processor={jsImageProcessor}
             options={{ isWorker: false }}
           />
           <ImageFilterBenchmark
             title={"JavaScript with WebWorker"}
-            iteration={count}
+            iteration={iteration}
             processor={jsImageWorkerProcessor}
             options={{ isWorker: true }}
           />
@@ -135,13 +142,13 @@ export const App = () => {
         <ImageFilterContainer title={"AssemblyScript"}>
           <ImageFilterBenchmark
             title={"AssemblyScript"}
-            iteration={count}
+            iteration={iteration}
             processor={asImageProcessor}
             options={{ isWorker: false }}
           />
           <ImageFilterBenchmark
             title={"AssemblyScript with WebWorker"}
-            iteration={count}
+            iteration={iteration}
             processor={asImageWorkerProcessor}
             options={{ isWorker: true }}
           />
@@ -151,13 +158,13 @@ export const App = () => {
         <ImageFilterContainer title={"AssemblyScript(SIMD)"}>
           <ImageFilterBenchmark
             title={"AssemblyScript(SIMD)"}
-            iteration={count}
+            iteration={iteration}
             processor={new ASImageProcessor()}
             options={{ isWorker: false, simd: true }}
           />
           <ImageFilterBenchmark
             title={"AssemblyScript(SIMD) with WebWorker"}
-            iteration={count}
+            iteration={iteration}
             processor={asImageWorkerProcessor}
             options={{ isWorker: true, simd: true }}
           />
@@ -171,7 +178,7 @@ export const App = () => {
           <ImageFilterContainer title={"WebGPU"}>
             <WebGPUImageFilterBenchmark
               title={"WebGPU Compute Shader"}
-              iteration={count}
+              iteration={iteration}
               options={{ isWorker: false }}
             />
           </ImageFilterContainer>
