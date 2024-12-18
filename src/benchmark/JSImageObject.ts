@@ -1,8 +1,6 @@
 import { ProgressMonitor } from "./ProgressMonitor";
 
 export class JSImageObject {
-  static nextId = 0;
-  public readonly id;
   public width: number;
   public height: number;
   public imageArrays!: Uint8ClampedArray[];
@@ -16,8 +14,6 @@ export class JSImageObject {
       this.createImageArray(buffer, 0, width * height * 4),
       this.createImageArray(buffer, 0, width * height * 4),
     ];
-
-    this.id = id == undefined ? JSImageObject.nextId++ : id;
   }
 
   createImageArray(
