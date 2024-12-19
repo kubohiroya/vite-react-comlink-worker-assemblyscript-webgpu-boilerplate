@@ -6,9 +6,9 @@ export function applyAverageFilter(id: u32, simd:boolean, iteration: i32): void 
 
     const width: i32 = imageObject.width;
     const height: i32 = imageObject.height;
-    const data = imageObject.data;
+    const outputData = imageObject.data;
 
-    const copy = new Uint8ClampedArray(u32(width * height * 4));
+    const inputData = new Uint8ClampedArray(u32(width * height * 4));
 
     // 乗算で平均を計算 (1/9 を乗算: 0.1111... ≈ 285 / 256)
     const factor = v128.splat<i32>(285); // 乗算係数 (285 / 256 ≈ 1/9)
@@ -16,7 +16,7 @@ export function applyAverageFilter(id: u32, simd:boolean, iteration: i32): void 
 
     for (let c = 0; c < iteration; c++) {
         postProgressMessage(c, iteration);
-        copy.set(data);
+        inputData.set(outputData);
 
         for (let y: i32 = 1; y < height - 1; y++) {
             if(simd){
@@ -35,10 +35,10 @@ export function applyAverageFilter(id: u32, simd:boolean, iteration: i32): void 
                             const index: u32 = u32((y + dy) * width + (x + dx)) * 4;
 
                             const pixel = v128.splat<u32>(0);
-                            v128.load_lane<u8>(copy.dataStart + index, pixel, 0); // Load 4 RGBA pixels
-                            v128.load_lane<u8>(copy.dataStart + index + 1, pixel, 1); // Load 4 RGBA pixels
-                            v128.load_lane<u8>(copy.dataStart + index + 2, pixel, 2); // Load 4 RGBA pixels
-                            v128.load_lane<u8>(copy.dataStart + index + 3, pixel, 3); // Load 4 RGBA pixels
+                            v128.load_lane<u8>(inputData.dataStart + index, pixel, 0); // Load 4 RGBA pixels
+                            v128.load_lane<u8>(inputData.dataStart + index + 1, pixel, 1); // Load 4 RGBA pixels
+                            v128.load_lane<u8>(inputData.dataStart + index + 2, pixel, 2); // Load 4 RGBA pixels
+                            v128.load_lane<u8>(inputData.dataStart + index + 3, pixel, 3); // Load 4 RGBA pixels
 
                             // 各チャンネルを抽出して加算
                             r = i32x4.add(r, v128.and(pixel, mask));           // R成分
@@ -61,7 +61,7 @@ export function applyAverageFilter(id: u32, simd:boolean, iteration: i32): void 
                     );
 
                     const i: u32 = u32((y * width + x) * 4);
-                    v128.store(data.dataStart + i, averagedPixel, 0, 4); // Store the averaged pixel
+                    v128.store(outputData.dataStart + i, averagedPixel, 0, 4); // Store the averaged pixel
                 }
             }else{
                 for (let x = 1; x < width - 1; x++) {
@@ -73,18 +73,18 @@ export function applyAverageFilter(id: u32, simd:boolean, iteration: i32): void 
                     for (let dy = -1; dy <= 1; dy++) {
                         for (let dx = -1; dx <= 1; dx++) {
                             const index: u32 = u32((y + dy) * width + (x + dx)) * 4;
-                            r += unchecked(copy[index]);
-                            g += unchecked(copy[index + 1]);
-                            b += unchecked(copy[index + 2]);
-                            a += unchecked(copy[index + 3]);
+                            r += unchecked(inputData[index]);
+                            g += unchecked(inputData[index + 1]);
+                            b += unchecked(inputData[index + 2]);
+                            a += unchecked(inputData[index + 3]);
                         }
                     }
 
                     const i: u32 = u32((y * width + x) * 4);
-                    unchecked((data[i] = u32(r / 9)));
-                    unchecked((data[i + 1] = u32(g / 9)));
-                    unchecked((data[i + 2] = u32(b / 9)));
-                    unchecked((data[i + 3] = u32(a / 9)));
+                    unchecked((outputData[i] = u32(r / 9)));
+                    unchecked((outputData[i + 1] = u32(g / 9)));
+                    unchecked((outputData[i + 2] = u32(b / 9)));
+                    unchecked((outputData[i + 3] = u32(a / 9)));
                 }
             }
         }

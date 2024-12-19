@@ -3,7 +3,8 @@ import * as Comlink from "comlink";
 import { ImageObject } from "../../models/ImageObject";
 import { ProgressMonitor } from "../../types/ProgressMonitor";
 import { ImageDataHandler } from "../ImageDataHandler";
-import { applyAverageFilter } from "./applyAverageFilter";
+//import { applyAverageFilter } from "./applyAverageFilter";
+import {applyAverageFilterDoubleBuffered} from "./applyAverageFilterDoubleBuffered"
 
 export class JSImageDataHandler implements ImageDataHandler {
   public imageObject!: ImageObject;
@@ -23,7 +24,8 @@ export class JSImageDataHandler implements ImageDataHandler {
     options: {},
     progressMonitor: ProgressMonitor,
   ): Promise<void> {
-    applyAverageFilter(this.imageObject, iteration, progressMonitor);
+    //applyAverageFilter(this.imageObject, iteration, progressMonitor);
+    applyAverageFilterDoubleBuffered(this.imageObject, iteration, progressMonitor);
   }
 
   public async transfer(): Promise<Uint8ClampedArray> {

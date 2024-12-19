@@ -17,6 +17,10 @@ export class DoubleBufferingImageObject {
     this.currentIndex = 0;
   }
 
+  setCurrentIndex(index: number): void {
+    this.currentIndex = index;
+  }
+
   getInputData(): Uint8ClampedArray {
     return this.dataArray[this.currentIndex % 2];
   }

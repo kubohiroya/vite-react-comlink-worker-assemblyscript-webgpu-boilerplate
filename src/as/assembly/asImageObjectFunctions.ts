@@ -1,6 +1,5 @@
 import { ASImageObject } from "./ASImageObject";
 import { ASImageObjects } from "./ASImageObjects";
-
 export function createASImageObject(
   width: u32,
   height: u32,
