@@ -5,9 +5,9 @@ import React, {
   ReactNode,
   useEffect,
 } from "react";
-import { JSImageObject } from "./JSImageObject";
+import { ImageObject } from "../models/ImageObject";
 
-export const PreloadImageObjectContext = createContext<JSImageObject | null>(
+export const PreloadImageObjectContext = createContext<ImageObject | null>(
   null,
 );
 
@@ -21,7 +21,7 @@ export const PreloadImageObjectContextProvider = ({
   children?: ReactNode;
 }) => {
   const [preloadImageObject, setPreloadImageObject] =
-    useState<JSImageObject | null>(null);
+    useState<ImageObject | null>(null);
 
   useEffect(() => {
     const canvas = document.createElement("canvas");
@@ -35,7 +35,7 @@ export const PreloadImageObjectContextProvider = ({
       const buffer = context.getImageData(0, 0, canvas.width, canvas.height)
         .data.buffer;
       setPreloadImageObject(
-        new JSImageObject(canvas.width, canvas.height, buffer),
+        new ImageObject(canvas.width, canvas.height, buffer),
       );
     };
     offscreenImage.src = src;
@@ -53,7 +53,7 @@ export const usePreloadImageObject = () => {
   const context = useContext(PreloadImageObjectContext);
   if (context == null)
     throw new Error(
-      "ImageObjectLoaderContext must be used within a PreloadImageObjectContextProvider",
+      "usePreloadImageObject must be used within a PreloadImageObjectContextProvider",
     );
   return context;
 };

@@ -7,12 +7,12 @@ import {
   styled,
   Typography,
 } from "@mui/material";
-import { ImageViewer } from "./ImageViewer";
-import { JSImageObject } from "./JSImageObject";
+import { ImageViewer } from "../components/imageViewer/ImageViewer";
+import { ImageObject } from "../models/ImageObject";
 import { useCallback, useState } from "react";
-import { usePreloadImageObject } from "./usePreloadImageObject";
-import { ProgressMeter } from "../components/ProgressMeter";
-import { ImageProcessor } from "./ImageProcessor";
+import { usePreloadImageObject } from "../hooks/usePreloadImageObject";
+import { ProgressMeter } from "../components/progressMeter/ProgressMeter";
+import { ImageDataHandler } from "./ImageDataHandler";
 import { decrementActiveCountAtom, incrementActiveCountAtom } from "./atoms";
 import { useAtom } from "jotai";
 
@@ -22,14 +22,14 @@ const ImageCaption = styled(Box)(({ theme }) => ({
   textAlign: "center",
 }));
 
-export const ImageFilterBenchmark = ({
+export const ImageProcessingBenchmark = ({
   title,
-  processor,
+  imageDataHandler,
   iteration,
   options,
 }: {
   title: string;
-  processor: ImageProcessor;
+  imageDataHandler: ImageDataHandler;
   iteration: number;
   options?: {
     isWorker?: boolean;
@@ -37,7 +37,7 @@ export const ImageFilterBenchmark = ({
   };
 }) => {
   const preloadImageObject = usePreloadImageObject();
-  const [targetImageObject, setTargetImageObject] = useState<JSImageObject>();
+  const [targetImageObject, setTargetImageObject] = useState<ImageObject>();
   const [isStarted, setStarted] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
   const [isFinished, setFinished] = useState<boolean>(false);
@@ -52,8 +52,8 @@ export const ImageFilterBenchmark = ({
         setProgress(value);
         setElapsedTime(performance.now() - startedTime);
         if (value === iteration) {
-          processor.transfer().then((array) => {
-            const updatedImageObject = new JSImageObject(
+          imageDataHandler.transfer().then((array) => {
+            const updatedImageObject = new ImageObject(
               width,
               height,
               new Uint8ClampedArray(array),
@@ -65,7 +65,7 @@ export const ImageFilterBenchmark = ({
         }
         return Promise.resolve();
       },
-    [iteration, processor, decrementActiveCount],
+    [iteration, imageDataHandler, decrementActiveCount],
   );
 
   const startProcessor = useCallback(() => {
@@ -77,15 +77,25 @@ export const ImageFilterBenchmark = ({
       preloadImageObject.width,
       preloadImageObject.height,
     ];
-    processor.initialize(width, height, preloadImageObject.getData().slice(0));
-    processor.applyAverageFilter(
+    imageDataHandler.initialize(
+      width,
+      height,
+      preloadImageObject.getData().slice(0),
+    );
+    imageDataHandler.applyAverageFilter(
       iteration,
       options || {},
       options?.isWorker
         ? proxy(updateProgress(width, height, startedTime))
         : updateProgress(width, height, startedTime),
     );
-  }, [processor, iteration, options, incrementActiveCount, preloadImageObject]);
+  }, [
+    imageDataHandler,
+    iteration,
+    options,
+    incrementActiveCount,
+    preloadImageObject,
+  ]);
 
   const reset = () => {
     setStarted(false);

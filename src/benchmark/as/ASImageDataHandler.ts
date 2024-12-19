@@ -2,29 +2,26 @@ import * as Comlink from "comlink";
 
 import * as wasm from "../../../build/vite-react-comlink-worker-assemblyscript-boilerplate/assets";
 
-import { ProgressMonitor } from "../ProgressMonitor";
-import { ImageProcessor } from "../ImageProcessor";
+import { ProgressMonitor } from "../../types/ProgressMonitor";
+import { ImageDataHandler } from "../ImageDataHandler";
 
-export class ASImageProcessor implements ImageProcessor {
+export class ASImageDataHandler implements ImageDataHandler {
   public id!: number;
 
-  constructor() {
-  }
+  constructor() {}
 
   public async initialize(
     width: number,
     height: number,
     buffer: ArrayBuffer,
   ): Promise<void> {
-    this.id = wasm.createImageObject(width, height);
-    const data = new Uint8ClampedArray(buffer);
-    wasm.setImageObjectData(this.id, data);
+    this.id = wasm.createASImageObject(width, height, buffer);
   }
 
   public async applyAverageFilter(
     iteration: number,
     options: {
-      simd: boolean,
+      simd: boolean;
     },
     progressMonitor: ProgressMonitor,
   ): Promise<void> {
@@ -48,4 +45,4 @@ export class ASImageProcessor implements ImageProcessor {
   }
 }
 
-Comlink.expose(new ASImageProcessor());
+Comlink.expose(new ASImageDataHandler());

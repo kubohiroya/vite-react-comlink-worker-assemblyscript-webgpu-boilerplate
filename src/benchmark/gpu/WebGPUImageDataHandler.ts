@@ -1,7 +1,7 @@
-import { ImageProcessor } from "../ImageProcessor";
-import { ProgressMonitor } from "../ProgressMonitor";
-import shaderCode from "./averageFilter.wgsl?raw";
-export class WebGPUImageProcessor implements ImageProcessor {
+import { ImageDataHandler } from "../ImageDataHandler";
+import { ProgressMonitor } from "../../types/ProgressMonitor";
+import shaderCode from "./applyAverageFilter.wgsl?raw";
+export class WebGPUImageDataHandler implements ImageDataHandler {
   private device: GPUDevice;
   private pipeline!: GPUComputePipeline;
   private bindGroupLayout!: GPUBindGroupLayout;

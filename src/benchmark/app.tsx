@@ -1,97 +1,66 @@
-import React, {
-  ReactNode,
-  useState,
-} from "react";
-import { PreloadImageObjectContextProvider } from "./usePreloadImageObject";
-import { ImageFilterBenchmark } from "./ImageFilterBenchmark";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   CircularProgress,
-  LinearProgress,
   Slider,
   Stack,
   Typography,
 } from "@mui/material";
 
-import Grid from "@mui/material/Grid2";
-import project from "../../package.json";
-
-import { ImageViewer } from "./ImageViewer";
-import { JSImageProcessor } from "./js/JSImageProcessor";
-import { ASImageProcessor } from "./as/ASImageProcessor";
-import { WebGPUDeviceContextProvider } from "./gpu/useWebGPUDevice";
-import { WebGPUImageFilterBenchmark } from "./gpu/WebGPUImageFilterBenchmark";
-import DigitalClock from "../components/DigitalClock";
 import { useAtom } from "jotai";
-import { activeCountAtom } from "./atoms";
+import { activeCountAtom, iterationCountAtom } from "./atoms";
 
-const IMAGE_SOURCE_URL = project.name+'/The_Great_Wave_off_Kanagawa.jpg';
+import project from "../../package.json";
+import { PreloadImageObjectContextProvider } from "../hooks/usePreloadImageObject";
+import { ImageProcessingBenchmark } from "./ImageProcessingBenchmark";
+import { ImageViewer } from "../components/imageViewer/ImageViewer";
+import { JSImageDataHandler } from "./js/JSImageDataHandler";
+import { ASImageDataHandler } from "./as/ASImageDataHandler";
+import { WebGPUDeviceContextProvider } from "../hooks/gpu/useWebGPUDevice";
+import { WebGPUImageProcessingBenchmark } from "./gpu/WebGPUImageProcessingBenchmark";
+import DigitalClock from "../components/digitalClock/DigitalClock";
+import { BenchmarkContainer } from "./components/BenchmarkContainer";
+
+const IMAGE_SOURCE_URL = project.name + "/The_Great_Wave_off_Kanagawa.jpg";
 const ITERATION_DEFAULT = 200;
 
-const jsImageProcessor = new JSImageProcessor();
-const asImageProcessor = new ASImageProcessor();
-
-const jsImageWorkerProcessor = new ComlinkWorker<JSImageProcessor>(
-  new URL("./js/JSImageProcessor", import.meta.url),
+const jsImageDataHandler = new JSImageDataHandler();
+const jsImageDataHandlerWorker = new ComlinkWorker<JSImageDataHandler>(
+  new URL("./js/JSImageDataHandler", import.meta.url),
   {
     type: "module",
   },
 );
 
-const asImageWorkerProcessor = new ComlinkWorker<ASImageProcessor>(
-  new URL("./as/ASImageProcessor", import.meta.url),
+const asImageDataHandler = new ASImageDataHandler();
+const asImageDataHandlerWorker = new ComlinkWorker<ASImageDataHandler>(
+  new URL("./as/ASImageDataHandler", import.meta.url),
   {
     type: "module",
   },
 );
 
-const ImageFilterContainer = ({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) => {
+const AppHeader = () => {
   return (
-    <Grid container spacing={2} height={290}>
-      <Grid
-        container
-        size={{ xs: 2 }}
-        alignContent={"center"}
-        justifyContent={"end"}
-      >
-        <Typography fontSize={20}>{title}</Typography>
-      </Grid>
-      {React.Children.map(children, (child) => (
-        <Grid
-          container
-          size={{ xs: 5 }}
-          alignContent={"center"}
-          justifyContent={"center"}
-        >
-          {child}
-        </Grid>
-      ))}
-    </Grid>
+    <>
+      <DigitalClock />
+      <ImageViewer scale={1} height={100} dy={-440} />
+    </>
   );
 };
-
-const AppHeader = ()=>{
-  return (<>
-        <DigitalClock />
-        <ImageViewer scale={1} height={100} dy={-440} />
-  </>
-  );
-}
 
 const mode = new URLSearchParams(location.search).get("mode");
 
 export const App = () => {
-  const [iteration, setIteration] = useState<number>(ITERATION_DEFAULT);
+  const [iterationCount, setIterationCount] = useAtom(iterationCountAtom);
   const [activeCount] = useAtom(activeCountAtom);
 
-  if(mode === "clock"){
-    return <DigitalClock />
+  useEffect(() => {
+    setIterationCount(ITERATION_DEFAULT);
+  }, []);
+
+  if (mode === "clock") {
+    return <DigitalClock />;
   }
 
   return (
@@ -100,13 +69,13 @@ export const App = () => {
       loader={<CircularProgress />}
     >
       <Stack direction={"column"}>
-        <AppHeader/>
+        <AppHeader />
         <Box style={{ margin: "35px 100px 30px 100px" }}>
           <Slider
             disabled={activeCount !== 0}
-            value={iteration}
+            value={iterationCount}
             onChange={(_: any, value: number | number[]) =>
-              setIteration(value as number)
+              setIterationCount(value as number)
             }
             min={0}
             max={500}
@@ -124,64 +93,64 @@ export const App = () => {
           />
         </Box>
 
-        <ImageFilterContainer title={"JavaScript"}>
-          <ImageFilterBenchmark
+        <BenchmarkContainer title={"JavaScript"}>
+          <ImageProcessingBenchmark
             title={"JavaScript"}
-            iteration={iteration}
-            processor={jsImageProcessor}
+            iteration={iterationCount}
+            imageDataHandler={jsImageDataHandler}
             options={{ isWorker: false }}
           />
-          <ImageFilterBenchmark
+          <ImageProcessingBenchmark
             title={"JavaScript with WebWorker"}
-            iteration={iteration}
-            processor={jsImageWorkerProcessor}
+            iteration={iterationCount}
+            imageDataHandler={jsImageDataHandlerWorker}
             options={{ isWorker: true }}
           />
-        </ImageFilterContainer>
+        </BenchmarkContainer>
 
-        <ImageFilterContainer title={"AssemblyScript"}>
-          <ImageFilterBenchmark
+        <BenchmarkContainer title={"AssemblyScript"}>
+          <ImageProcessingBenchmark
             title={"AssemblyScript"}
-            iteration={iteration}
-            processor={asImageProcessor}
+            iteration={iterationCount}
+            imageDataHandler={asImageDataHandler}
             options={{ isWorker: false }}
           />
-          <ImageFilterBenchmark
+          <ImageProcessingBenchmark
             title={"AssemblyScript with WebWorker"}
-            iteration={iteration}
-            processor={asImageWorkerProcessor}
+            iteration={iterationCount}
+            imageDataHandler={asImageDataHandlerWorker}
             options={{ isWorker: true }}
           />
-        </ImageFilterContainer>
+        </BenchmarkContainer>
 
-          {false &&
-        <ImageFilterContainer title={"AssemblyScript(SIMD)"}>
-          <ImageFilterBenchmark
-            title={"AssemblyScript(SIMD)"}
-            iteration={iteration}
-            processor={new ASImageProcessor()}
-            options={{ isWorker: false, simd: true }}
-          />
-          <ImageFilterBenchmark
-            title={"AssemblyScript(SIMD) with WebWorker"}
-            iteration={iteration}
-            processor={asImageWorkerProcessor}
-            options={{ isWorker: true, simd: true }}
-          />
-        </ImageFilterContainer>
-          }
+        {false && (
+          <BenchmarkContainer title={"AssemblyScript(SIMD)"}>
+            <ImageProcessingBenchmark
+              title={"AssemblyScript(SIMD)"}
+              iteration={iterationCount}
+              imageDataHandler={asImageDataHandlerWorker}
+              options={{ isWorker: false, simd: true }}
+            />
+            <ImageProcessingBenchmark
+              title={"AssemblyScript(SIMD) with WebWorker"}
+              iteration={iterationCount}
+              imageDataHandler={asImageDataHandlerWorker}
+              options={{ isWorker: true, simd: true }}
+            />
+          </BenchmarkContainer>
+        )}
 
         <WebGPUDeviceContextProvider
           loadingMessage={<CircularProgress />}
           notSupportedMessage={<Typography>WebGPU is not supported</Typography>}
         >
-          <ImageFilterContainer title={"WebGPU"}>
-            <WebGPUImageFilterBenchmark
+          <BenchmarkContainer title={"WebGPU"}>
+            <WebGPUImageProcessingBenchmark
               title={"WebGPU Compute Shader"}
-              iteration={iteration}
+              iteration={iterationCount}
               options={{ isWorker: false }}
             />
-          </ImageFilterContainer>
+          </BenchmarkContainer>
         </WebGPUDeviceContextProvider>
       </Stack>
     </PreloadImageObjectContextProvider>

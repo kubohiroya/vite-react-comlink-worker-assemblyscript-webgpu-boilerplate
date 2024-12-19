@@ -1,8 +1,8 @@
 export {
-  createImageObject,
-  setImageObjectData,
+  createASImageObject,
   getImageObjectPtrLen,
   deleteImageObject,
-  applyAverageFilter,
-  getImageObjectWidthHeight
-} from "./ASImageObject";
+  getImageObjectWidthHeight,
+} from "./asImageObjectFunctions";
+
+export { applyAverageFilter } from "./asApplyAverageFilter";
