@@ -1,6 +1,6 @@
 {
   "name": "vite-react-comlink-worker-assemblyscript-webgpu-boilerplate",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Vite React Comlink WebWorker AssemblyScript WebGPU Boilerplate",
   "scripts": {
     "dev": "vite dev",
