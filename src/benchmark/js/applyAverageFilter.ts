@@ -6,12 +6,20 @@ export function applyAverageFilter(
     iteration: number,
     progressMonitor: ProgressMonitor,
 ): void {
-  const { width, height } = sourceImageObject;
+  const {width, height} = sourceImageObject;
+  _applyAverageFilter(width, height, sourceImageObject.getData(), iteration, progressMonitor);
+}
 
-  const imageObject = sourceImageObject;
+export function _applyAverageFilter(
+    width: number,
+    height: number,
+    data: Uint8ClampedArray,
+    iteration: number,
+    progressMonitor: ProgressMonitor,
+): void {
 
-  const inputData = new Uint8ClampedArray(imageObject.width * imageObject.height * 4);
-  const outputData = imageObject.getData();
+  const inputData = Uint8ClampedArray.from(data);
+  const outputData = Uint8ClampedArray.from(data);
 
   [...Array(iteration)].forEach((_: any, index:number)=>{
 

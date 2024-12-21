@@ -21,23 +21,31 @@ export class ASImageDataHandler implements ImageDataHandler {
   public async applyAverageFilter(
     iteration: number,
     options: {
-      simd: boolean;
+      simd?: boolean;
     },
     progressMonitor: ProgressMonitor,
   ): Promise<void> {
-    (globalThis as any).postProgressMessage = function postProgressMessage(
+    (globalThis as any).postProgressMessage = function(
       value: number,
       valueMax: number,
     ): void {
       progressMonitor({ value, valueMax });
     };
-    wasm.applyAverageFilter(this.id, options.simd || false, iteration);
+    if(options.simd){
+      wasm.applyAverageFilterSIMD(this.id, iteration);
+    }else{
+      wasm.applyAverageFilter(this.id, iteration);
+    }
   }
 
   public async transfer(): Promise<Uint8ClampedArray> {
     const [ptr, len] = wasm.getImageObjectPtrLen(this.id);
+    //const [width, height] = wasm.getImageObjectWidthHeight(this.id);
+    const array = new Uint8ClampedArray(wasm.memory.buffer, ptr, len)
     wasm.deleteImageObject(this.id);
-    return new Uint8ClampedArray(wasm.memory.buffer, ptr, len);
+    //const i = 1025*4;
+    //console.log('transfer', new Uint8ClampedArray(array.slice(i,i+16)), width, height);
+    return array;
   }
 
   public close(): void {

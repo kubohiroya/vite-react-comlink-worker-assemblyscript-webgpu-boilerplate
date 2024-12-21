@@ -3,7 +3,7 @@
   "options": {
     "bindings": "esm",
     "enable": ["simd"],
-    "runtime": "minimal",
+    "runtime": "stub",
     "exportRuntime": true
   },
   "targets": {

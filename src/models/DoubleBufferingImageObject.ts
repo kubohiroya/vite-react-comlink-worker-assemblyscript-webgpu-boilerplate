@@ -9,7 +9,6 @@ export class DoubleBufferingImageObject {
   constructor(imageObject: ImageObject) {
     this.imageObject = imageObject;
     this.data2 = this.imageObject.createImageArray(
-      imageObject.data.buffer.slice(0),
       0,
       imageObject.width * imageObject.height * 4,
     );

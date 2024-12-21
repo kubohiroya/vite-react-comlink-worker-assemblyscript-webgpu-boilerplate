@@ -11,7 +11,7 @@ import { useAtom } from "jotai";
 import { activeCountAtom, iterationCountAtom } from "./atoms";
 
 import project from "../../package.json";
-import { PreloadImageObjectContextProvider } from "../hooks/usePreloadImageObject";
+import { PreloadImageObjectContextProvider, usePreloadImageObject } from "../hooks/usePreloadImageObject";
 import { ImageProcessingBenchmark } from "./ImageProcessingBenchmark";
 import { ImageViewer } from "../components/imageViewer/ImageViewer";
 import { JSImageDataHandler } from "./js/JSImageDataHandler";
@@ -34,24 +34,25 @@ const jsImageDataHandlerWorker = new ComlinkWorker<JSImageDataHandler>(
 
 const asImageDataHandler = new ASImageDataHandler();
 const asImageDataHandlerWorker = new ComlinkWorker<ASImageDataHandler>(
-  new URL("./as/ASImageDataHandler", import.meta.url),
-  {
-    type: "module",
-  },
+    new URL("./as/ASImageDataHandler", import.meta.url),
+    {
+      type: "module",
+    },
 );
 
 const AppHeader = () => {
+  const preloadImageObject = usePreloadImageObject();
   return (
     <>
       <DigitalClock />
-      <ImageViewer scale={1} height={100} dy={-440} />
+      <ImageViewer scale={1} width={preloadImageObject.width} height={100} dy={-440} imageObject={preloadImageObject}/>
     </>
   );
 };
 
 const mode = new URLSearchParams(location.search).get("mode");
-
-export const App = () => {
+const simd = new URLSearchParams(location.search).get("simd");
+export const Benchmarks = () => {
   const [iterationCount, setIterationCount] = useAtom(iterationCountAtom);
   const [activeCount] = useAtom(activeCountAtom);
 
@@ -59,17 +60,8 @@ export const App = () => {
     setIterationCount(ITERATION_DEFAULT);
   }, []);
 
-  if (mode === "clock") {
-    return <DigitalClock />;
-  }
-
   return (
-    <PreloadImageObjectContextProvider
-      src={IMAGE_SOURCE_URL}
-      loader={<CircularProgress />}
-    >
-      <Stack direction={"column"}>
-        <AppHeader />
+      <>
         <Box style={{ margin: "35px 100px 30px 100px" }}>
           <Slider
             disabled={activeCount !== 0}
@@ -98,13 +90,13 @@ export const App = () => {
             title={"JavaScript"}
             iteration={iterationCount}
             imageDataHandler={jsImageDataHandler}
-            options={{ isWorker: false }}
+            options={{ doubleBuffering: true, isWorker: false }}
           />
           <ImageProcessingBenchmark
             title={"JavaScript with WebWorker"}
             iteration={iterationCount}
             imageDataHandler={jsImageDataHandlerWorker}
-            options={{ isWorker: true }}
+            options={{ doubleBuffering: true, isWorker: true }}
           />
         </BenchmarkContainer>
 
@@ -123,12 +115,12 @@ export const App = () => {
           />
         </BenchmarkContainer>
 
-        {false && (
+        {simd &&
           <BenchmarkContainer title={"AssemblyScript(SIMD)"}>
             <ImageProcessingBenchmark
               title={"AssemblyScript(SIMD)"}
               iteration={iterationCount}
-              imageDataHandler={asImageDataHandlerWorker}
+              imageDataHandler={asImageDataHandler}
               options={{ isWorker: false, simd: true }}
             />
             <ImageProcessingBenchmark
@@ -138,7 +130,7 @@ export const App = () => {
               options={{ isWorker: true, simd: true }}
             />
           </BenchmarkContainer>
-        )}
+        }
 
         <WebGPUDeviceContextProvider
           loadingMessage={<CircularProgress />}
@@ -152,8 +144,26 @@ export const App = () => {
             />
           </BenchmarkContainer>
         </WebGPUDeviceContextProvider>
-      </Stack>
-    </PreloadImageObjectContextProvider>
+      </>
+  );
+};
+
+export const App = () => {
+
+  if (mode === "clock") {
+    return <DigitalClock/>;
+  }
+
+  return (
+      <PreloadImageObjectContextProvider
+          src={IMAGE_SOURCE_URL}
+          loader={<CircularProgress/>}
+      >
+        <Stack direction={"column"}>
+          <AppHeader/>
+          <Benchmarks/>
+        </Stack>
+      </PreloadImageObjectContextProvider>
   );
 };
 
