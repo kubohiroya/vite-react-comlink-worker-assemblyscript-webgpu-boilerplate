@@ -8,6 +8,21 @@ import { ImageDataHandler } from "../ImageDataHandler";
 export class ASImageDataHandler implements ImageDataHandler {
   public id!: number;
 
+  private static monitors: Map<number,ProgressMonitor> = new Map();
+
+  static {
+    (globalThis as any).postProgressMessage = function(
+        id: number,
+        value: number,
+        valueMax: number,
+    ): void {
+      const monitor = ASImageDataHandler.monitors.get(id);
+      if(monitor) {
+        monitor({value, valueMax});
+      }
+    }
+  }
+
   constructor() {}
 
   public async initialize(
@@ -25,26 +40,22 @@ export class ASImageDataHandler implements ImageDataHandler {
     },
     progressMonitor: ProgressMonitor,
   ): Promise<void> {
-    (globalThis as any).postProgressMessage = function(
-      value: number,
-      valueMax: number,
-    ): void {
-      progressMonitor({ value, valueMax });
-    };
+
+    ASImageDataHandler.monitors.set(this.id, progressMonitor);
+
     if(options.simd){
       wasm.applyAverageFilterSIMD(this.id, iteration);
     }else{
       wasm.applyAverageFilter(this.id, iteration);
     }
+
+    ASImageDataHandler.monitors.delete(this.id);
   }
 
   public async transfer(): Promise<Uint8ClampedArray> {
     const [ptr, len] = wasm.getImageObjectPtrLen(this.id);
-    //const [width, height] = wasm.getImageObjectWidthHeight(this.id);
     const array = new Uint8ClampedArray(wasm.memory.buffer, ptr, len)
     wasm.deleteImageObject(this.id);
-    //const i = 1025*4;
-    //console.log('transfer', new Uint8ClampedArray(array.slice(i,i+16)), width, height);
     return array;
   }
 

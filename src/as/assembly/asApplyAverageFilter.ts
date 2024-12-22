@@ -3,10 +3,11 @@ import { ASImageObjects } from "./ASImageObjects";
 export function applyAverageFilter(id: u32, iteration: i32): void {
     const imageObject = ASImageObjects.getSingleton().get(id);
     if (!imageObject) throw new Error("Invalid ImageObject ID");
-    _applyAverageFilter(imageObject.width, imageObject.height, imageObject.data, iteration);
+    _applyAverageFilter(imageObject.id, imageObject.width, imageObject.height, imageObject.data, iteration);
 }
 
 function _applyAverageFilter(
+    id: u32,
     width: i32,
     height: i32,
     outputData: Uint8ClampedArray,
@@ -14,11 +15,8 @@ function _applyAverageFilter(
 ): void{
     const inputData = new Uint8ClampedArray(u32(width * height * 4));
 
-    // console.log('in');
-    // console.log(outputData[4096+4].toString());
-
     for (let c: i32 = 0; c < iteration; c++) {
-        postProgressMessage(c, iteration);
+        postProgressMessage(id, c, iteration);
         inputData.set(outputData);
 
         for (let y: i32 = 1; y < height - 1; y++) {
@@ -46,12 +44,9 @@ function _applyAverageFilter(
         }
     }
 
-    // console.log('out');
-    // console.log(outputData[4096+4].toString());
-
-    postProgressMessage(iteration, iteration);
+    postProgressMessage(id, iteration, iteration);
 }
 
 // @ts-ignore: decorator
 @external("env", "postProgressMessage")
-export declare function postProgressMessage(value: u32, maxValue: u32): void;
+export declare function postProgressMessage(id: u32, value: u32, maxValue: u32): void;

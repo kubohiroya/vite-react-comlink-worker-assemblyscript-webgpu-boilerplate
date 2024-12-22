@@ -4,14 +4,15 @@ export function applyAverageFilterSIMD(id: u32, iteration: i32): void {
     const imageObject = ASImageObjects.getSingleton().get(id);
     if (!imageObject) throw new Error("Invalid ImageObject ID");
 
-    _applyAverageFilterSIMD(imageObject.width, imageObject.height, imageObject.data, iteration);
+    _applyAverageFilterSIMD(imageObject.id, imageObject.width, imageObject.height, imageObject.data, iteration);
 }
 
 function _applyAverageFilterSIMD(
-    width: i32,
-    height: i32,
+    id: u32,
+    width: u32,
+    height: u32,
     outputData: Uint8ClampedArray,
-    iteration: i32
+    iteration: u32
 ): void{
     const inputData = new Uint8ClampedArray(u32(width * height * 4));
 
@@ -22,12 +23,12 @@ function _applyAverageFilterSIMD(
     console.log('in');
     console.log(outputData[1025*4].toString());
 
-    for (let c: i32 = 0; c < iteration; c++) {
-        postProgressMessage(c, iteration);
+    for (let c: u32 = 0; c < iteration; c++) {
+        postProgressMessage(id, c, iteration);
         inputData.set(outputData);
 
-        for (let y: i32 = 1; y < height - 1; y++) {
-            for (let x: i32 = 1; x < width - 1; x += 4) { // SIMD processes 4 pixels at a time
+        for (let y: u32 = 1; y < height - 1; y++) {
+            for (let x: u32 = 1; x < width - 1; x += 4) { // SIMD processes 4 pixels at a time
                 // TODO
             }
         }
@@ -36,9 +37,9 @@ function _applyAverageFilterSIMD(
     console.log('out');
     console.log(outputData[1025*4].toString());
 
-    postProgressMessage(iteration, iteration);
+    postProgressMessage(id, iteration, iteration);
 }
 
 // @ts-ignore: decorator
 @external("env", "postProgressMessage")
-export declare function postProgressMessage(value: u32, maxValue: u32): void;
+export declare function postProgressMessage(id: u32, value: u32, maxValue: u32): void;
