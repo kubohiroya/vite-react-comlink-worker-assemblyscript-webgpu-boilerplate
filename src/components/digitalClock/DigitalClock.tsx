@@ -16,6 +16,7 @@ const DigitalClock: React.FC<DigitalClockProps> = ({
     let hours = date.getHours();
     const minutes = date.getMinutes();
     const seconds = date.getSeconds();
+    const milliSeconds = date.getMilliseconds();
     let period = "";
 
     if (format12Hour) {
@@ -26,8 +27,9 @@ const DigitalClock: React.FC<DigitalClockProps> = ({
     const paddedHours = hours.toString().padStart(2, "0");
     const paddedMinutes = minutes.toString().padStart(2, "0");
     const paddedSeconds = seconds.toString().padStart(2, "0");
+    const paddedMilSeconds = milliSeconds.toString().padStart(3, "0");
 
-    return `${paddedHours}:${paddedMinutes}:${paddedSeconds} ${period}`.trim();
+    return `${paddedHours}:${paddedMinutes}:${paddedSeconds}.${paddedMilSeconds} ${period}`.trim();
   };
 
   useEffect(() => {
@@ -39,7 +41,7 @@ const DigitalClock: React.FC<DigitalClockProps> = ({
     // Update the time every second
     const intervalId = setInterval(() => {
       updateCurrentTime();
-    }, 100);
+    }, 10);
 
     // Cleanup the interval on component unmount
     return () => clearInterval(intervalId);
