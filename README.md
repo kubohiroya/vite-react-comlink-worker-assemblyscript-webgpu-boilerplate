@@ -1,3 +1,7 @@
+# LiveDemo
+
+[LiveDemo](https://kubohiroya.github.io/vite-react-comlink-worker-assemblyscript-webgpu-boilerplate/)
+
 # What is this?
 
 https://x.com/kubohiroya/status/1868272358794150117
